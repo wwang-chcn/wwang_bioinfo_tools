@@ -13,25 +13,7 @@ def load_gmt(gmt_file):
     return gmt
 
 
-gmt_file_list = [
-    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.BP.ENSG.gmt',
-    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.CC.ENSG.gmt',
-    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.MF.ENSG.gmt'
-]
-
-gmt = {}
-for gmt_file in gmt_file_list:
-    gmt.update(load_gmt(gmt_file))
-
-ensGene_to_symbol_file = '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/danRer7_ensGeneToGeneSymbol.txt'
-with open(ensGene_to_symbol_file) as fhd:
-    ensGene_to_symbol = {
-        line.strip().split()[0]: line.strip().split()[1]
-        for line in fhd
-    }
-
-
-def gProfile_query(query_gene, output_file, output_symbol_file):
+def gProfile_query(query_gene, gmt, output_file, gene_to_symbol, output_symbol_file):
     r = requests.post(url='https://biit.cs.ut.ee/gprofiler/api/gost/profile/',
                       json={
                           'organism': 'drerio',
@@ -72,3 +54,24 @@ def gProfile_query(query_gene, output_file, output_symbol_file):
                          ensGene_to_symbol else 'NA'
                          for gene in intersections))
             fhd_csv2.writerow(row)
+
+
+gmt_file_list = [
+    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.BP.ENSG.gmt',
+    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.CC.ENSG.gmt',
+    '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/gprofiler_drerio.ENSG/drerio.GO.MF.ENSG.gmt'
+]
+
+gmt = {}
+for gmt_file in gmt_file_list:
+    gmt.update(load_gmt(gmt_file))
+
+ensGene_to_symbol_file = '/mnt/Storage/home/wangwen/source/bySpecies/danRer7/danRer7_ensGeneToGeneSymbol.txt'
+with open(ensGene_to_symbol_file) as fhd:
+    ensGene_to_symbol = {
+        line.strip().split()[0]: line.strip().split()[1]
+        for line in fhd
+    }
+
+
+gProfile_query(query_gene, gmt, output_file, ensGene_to_symbol_file, output_symbol_file)
