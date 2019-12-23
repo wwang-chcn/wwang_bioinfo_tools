@@ -17,7 +17,7 @@ def gProfile_query(query_gene, gmt, output_file, gene_to_symbol, output_symbol_f
     r = requests.post(url='https://biit.cs.ut.ee/gprofiler/api/gost/profile/',
                       json={
                           'organism': 'drerio',
-                          'query': list(non_zygotic_genes),
+                          'query': list(query_gene),
                           'sources': ['GO'],
                           'no_evidences': True
                       })

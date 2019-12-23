@@ -1,26 +1,5 @@
 #!/usr/bin/env python3
 
-# Oct-16-2019
-# Update:
-# 1. new format genePredExt
-# option format changed to choice type
-
-# Oct-8-2019
-# Update:
-# Python3 support
-
-# Nov-2-2017
-# Update:
-# 1. Add distance to gene
-# 2. Use new format syntax
-
-# Nov-8-2016
-# Start Up
-
-# ------------------------------------
-# Python modules
-# ------------------------------------
-
 import os
 import sys
 from optparse import OptionParser
