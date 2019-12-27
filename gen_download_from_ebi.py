@@ -2,7 +2,7 @@
 
 import os
 import sys
-import pandas as pd
+import csv
 
 USAGE = '{} <proj_file> <output_file>'.format(os.path.basename(sys.argv[0]))
 
@@ -11,12 +11,13 @@ output_file = sys.argv[2]
 
 def gen_download_script(rows):
     for row in rows:
-        for fastq_file in row.fastq_ftp.split(';'):
+        for fastq_file in row.get('fastq_ftp', None).split(';'):
             fastq_file_path = fastq_file.split('/',1)[1]
-            yield f'~/.aspera/connect/bin/ascp -QT -l 300m -P33001 -i ~/.aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:{fastq_file_path} .'
+            fastq_file = fastq_file.rsplit('/',1)[1]
+            yield f'if [ ! -f {fastq_file} ]; then ~/.aspera/connect/bin/ascp -QT -l 300m -P33001 -i ~/.aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:{fastq_file_path} .; fi'
 
 
-proj = pd.read_csv(proj_file, sep='\t')
-
-with open(output_file, 'w') as fhd:
-    fhd.write('\n'.join(gen_download_script(proj.itertuples())))
+with open(proj_file) as input_fhd, \
+     open(output_file, 'w') as output_fhd:
+    intput_csv = csv.DictReader(input_fhd, delimiter='\t')
+    output_fhd.write('\n'.join(gen_download_script(intput_csv)))
