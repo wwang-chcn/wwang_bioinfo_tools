@@ -1,7 +1,5 @@
 #! /bin/bash
 
-source ~/anaconda3/bin/activate py36
-
 USAGE="<genomeVersion>"
 
 MY_PATH="`dirname \"$0\"`"
@@ -56,10 +54,8 @@ if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
     python ../bin/getEnsGeneToGeneName.py ${genomeVersion}
 fi
 
-source ~/anaconda3/bin/activate py27
 python ../bin/genePredExtToSqlite3.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.sq3
 if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
     python ../bin/genePredExtToSqlite3.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.sq3
 fi
-source ~/anaconda3/bin/activate py36
 
