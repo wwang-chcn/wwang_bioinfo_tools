@@ -15,7 +15,7 @@ def gen_download_script(rows):
             fastq_file_path = fastq_file.split('/',1)[1]
             fastq_file = fastq_file.rsplit('/',1)[1]
             yield f'if [ ! -f {fastq_file} ]; then ~/.aspera/connect/bin/ascp -QT -l 300m -P33001 -i ~/.aspera/connect/etc/asperaweb_id_dsa.openssh era-fasp@fasp.sra.ebi.ac.uk:{fastq_file_path} .; fi'
-            yield f'wget -c ftp://ftp.sra.ebi.ac.uk/{fastq_file_path}'
+            yield f'if [ ! -f {fastq_file} ]; then wget ftp://ftp.sra.ebi.ac.uk/{fastq_file_path}; fi'
 
 
 with open(proj_file) as input_fhd, \
