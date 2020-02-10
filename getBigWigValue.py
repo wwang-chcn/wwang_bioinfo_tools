@@ -62,8 +62,8 @@ import os, sys
 import subprocess
 from distutils.spawn import find_executable
 
-scripy_name = os.path.basename(sys.argv[0])
-USAGE = f'{scripy_name} <name> <bedfile> <datapoints> <strand> <bigwigfiles+>'
+script_name = os.path.basename(sys.argv[0])
+USAGE = f'{script_name} <name> <bedfile> <datapoints> <strand> <bigwigfiles+>'
 
 datapoints = int(sys.argv[3])
 strand_specific = int(sys.argv[4])
@@ -108,7 +108,7 @@ with open(sys.argv[2]) as bedFhd:
 # Sub Funcitons
 # ------------------------------
 def prepare_optparser():
-    '''
+    '''\
     Prepare optparser object. New options will be added in thisfunction first.
     '''
     script_name = os.path.basename(sys.argv[0])
@@ -116,7 +116,7 @@ def prepare_optparser():
     description = 'bigWigSignalCapture -- Capture signal form bigWigFiles.'
     
     # option processor
-    optparser = OptionParser(version=f'{scripy_name} 0.1',
+    optparser = OptionParser(version=f'{script_name} 0.1',
                              description=description,
                              usage=usage,
                              add_help_option=False)
