@@ -8,7 +8,7 @@ def load_gmt(gmt_file):
     gmt = {}
     with open(gmt_file) as fhd:
         for line in fhd:
-            line = line.strip().split()
+            line = line.strip().split('\t')
             gmt[line[0]] = set(line[2:])
     return gmt
 
