@@ -9,6 +9,7 @@ import csv
 import numpy as np
 from optparse import OptionParser
 from collections import defaultdict
+from contextlib import contextmanager
 
 
 # ------------------------------------
@@ -109,16 +110,12 @@ def get_region_meth(region, points, methylation, coverage):
         meth_val.append(np.nan if n == 0 or total / n < coverage else m / total)
     return meth_val
 
-class smart_write_open:
-    def __init__(self, file_name):
-        self.file_name = file_name
-    
-    def __enter__(self):
-        self.fhd = gzip.open(self.file_name, 'wt') if self.file_name.endswith('.gz') else open(self.file_name, 'w')
-        return self.fhd
-    
-    def __exit__(self, exc_ty, exc_val, tb):
-        self.fhd.close()
+
+@contextmanager
+def smart_write_open(file_name):
+    fhd = gzip.open(file_name, 'wt') if file_name.endswith('.gz') else open(file_name, 'w')
+    yield fhd
+    fhd.close()
 
 
 def get_file_meth(bed_file, output_file, points, methylation, coverage):
