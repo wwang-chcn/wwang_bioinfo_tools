@@ -6,7 +6,7 @@ def stack_percentage_bar(results, horizontal=False):
     horizontal: bool
         If the figure should be horizontal.
     """
-
+    
     # the following modules should been loaded before
     #import numpy as np
     #import matplotlib as mpl
@@ -15,18 +15,18 @@ def stack_percentage_bar(results, horizontal=False):
     #mpl.rcParams['font.sans-serif'] = 'Helvetica'
     #import matplotlib.pyplot as plt
     #import seaborn as sns
-
+    
     percentage = results.div(results.sum(axis=1), axis=0) * 100
     percentage_cum = percentage.cumsum(axis=1)
     percentage_cum.loc[:, percentage_cum.shape[1] - 1] = 100.0
     category_colors = plt.get_cmap('RdYlGn')(np.linspace(
         0.15, 0.85, results.shape[1]))
-
+    
     if horizontal:
         fig, ax = plt.subplots(figsize=(9.2, 5))
         ax.invert_yaxis()
         ax.set_xlim(0, 100)
-
+        
         for i, (category_name,
                 color) in enumerate(zip(results.columns, category_colors)):
             widths = percentage.iloc[:, i]
@@ -38,9 +38,9 @@ def stack_percentage_bar(results, horizontal=False):
                     label=category_name,
                     color=color)
             xcenters = starts + widths / 2
-
+            
             r, g, b, _ = color
-            text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
+            text_color = 'white' if r * g * b < 0.33 else ('grey' if r * g * b < 0.66 else 'black')
             for y, (x, c) in enumerate(zip(xcenters, results.iloc[:, i])):
                 ax.text(x,
                         y,
@@ -61,7 +61,7 @@ def stack_percentage_bar(results, horizontal=False):
     else:
         fig, ax = plt.subplots(figsize=(8.4, 6.8))
         ax.set_ylim(0, 100)
-
+        
         for i, (category_name,
                 color) in enumerate(zip(results.columns, category_colors)):
             hights = percentage.iloc[:, i]
@@ -73,9 +73,9 @@ def stack_percentage_bar(results, horizontal=False):
                    label=category_name,
                    color=color)
             xcenters = starts + hights / 2
-
+            
             r, g, b, _ = color
-            text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
+            text_color = 'white' if r * g * b < 0.33 else ('grey' if r * g * b < 0.66 else 'black')
             for x, (c, y) in enumerate(zip(results.iloc[:, i], xcenters)):
                 ax.text(x,
                         y,
