@@ -192,26 +192,6 @@ def GSEA_plot(ES, hits, name):
         ax.add_artist(at)
         plt.savefig(f'{name}.pdf')
 
-    #fig = plt.figure()
-    #plt.style.use('bmh')
-    #ax1 = fig.add_axes([0.1,0.2,0.85,0.75])
-    #ax1.plot(ES)
-    #maximum, minimum = max(ES), min(ES)
-    #ES_score = maximum if maximum+minimum>0 else minimum
-    #at = AnchoredText(f'Enrichment score = {ES_score:.3f}', loc='upper right')
-    #ax1.add_artist(at)
-    #ax1.set_ylabel('Enrichment score')
-    #ax1.set_xticklabels([])
-    #ax1.set_xlim([0,len(hits)-1])
-    #plt.style.use('seaborn-white')
-    #ax2 = fig.add_axes([0.1,0.05,0.85,0.15])
-    #for index, hit in enumerate(hits):
-    #    if hit:
-    #        ax2.plot([index+0.5,index+0.5],[0,1],color='black',linewidth=0.5)
-    #ax2.set_yticks([])
-    #ax2.set_xlim([0,len(hits)])
-    #plt.savefig(f'{name}.pdf')
-
 
 # ------------------------------------
 # Main Functions
