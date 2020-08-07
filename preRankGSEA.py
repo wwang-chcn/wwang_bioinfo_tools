@@ -3,13 +3,18 @@
 import os, sys
 from optparse import OptionParser, OptionGroup
 from math import ceil, log10
+import numpy as np
 import pandas as pd
 import time
 import logging
 
 import matplotlib as mpl
 mpl.use('Agg')
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['font.sans-serif'] = 'Helvetica'
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # ------------------------------------
 # constants
@@ -157,10 +162,9 @@ def enrichment_score(rank, geneSet, p):
     for i in range(len(rank)):
         if rank[i][0] in geneSet:
             pHit += abs(rank[i][1]) ** p / Nr
-            hit.append(1)
+            hit.append(i)
         else:
             pMiss += 1.0 / non_hit_gene
-            hit.append(0)
         ES.append(pHit-pMiss)
     
     return (ES, hit)
@@ -168,25 +172,45 @@ def enrichment_score(rank, geneSet, p):
 
 def GSEA_plot(ES, hits, name):
     from matplotlib.offsetbox import AnchoredText
-    fig = plt.figure()
-    plt.style.use('bmh')
-    ax1 = fig.add_axes([0.1,0.2,0.85,0.75])
-    ax1.plot(ES)
-    maximum, minimum = max(ES), min(ES)
-    ES_score = maximum if maximum+minimum>0 else minimum
-    at = AnchoredText(f'Enrichment score = {ES_score:.3f}', loc='upper right')
-    ax1.add_artist(at)
-    ax1.set_ylabel('Enrichment score')
-    ax1.set_xticklabels([])
-    ax1.set_xlim([0,len(hits)-1])
-    plt.style.use('seaborn-white')
-    ax2 = fig.add_axes([0.1,0.05,0.85,0.15])
-    for index, hit in enumerate(hits):
-        if hit:
-            ax2.plot([index+0.5,index+0.5],[0,1],color='black',linewidth=0.5)
-    ax2.set_yticks([])
-    ax2.set_xlim([0,len(hits)])
-    plt.savefig(f'{name}.pdf')
+    with sns.axes_style('whitegrid'), sns.plotting_context('paper'):
+        fig, ax = plt.subplots()
+        ax.plot(np.arange(len(ES)),ES)
+        maximum, minimum = max(ES), min(ES)
+        ES_score = maximum if maximum+minimum>0 else minimum
+        ylim_upper = maximum + (maximum - minimum) * .05
+        ylim_lower = minimum - (maximum - minimum) * .05
+        eventplot_height = (maximum - minimum) * .1
+        ax.eventplot(hits, lineoffsets=ylim_lower-eventplot_height*.5,linelengths=eventplot_height)
+        ax.set_xlim(0,len(ES)-1)
+        ax.set_ylim((ylim_lower-eventplot_height,ylim_upper))
+        ax.set_ylabel('Enrichment score')
+        for ytick, yticklabel in zip(ax.get_yticks(),ax.get_yticklabels()):
+            if ytick < ylim_lower:
+                yticklabel.set_visible(False)
+        ax.axhline(y=ylim_lower,xmin=0,xmax=len(ES)-1,color='k')
+        at = AnchoredText(f'Enrichment score = {ES_score:.3f}', loc='upper right')
+        ax.add_artist(at)
+        plt.savefig(f'{name}.pdf')
+
+    #fig = plt.figure()
+    #plt.style.use('bmh')
+    #ax1 = fig.add_axes([0.1,0.2,0.85,0.75])
+    #ax1.plot(ES)
+    #maximum, minimum = max(ES), min(ES)
+    #ES_score = maximum if maximum+minimum>0 else minimum
+    #at = AnchoredText(f'Enrichment score = {ES_score:.3f}', loc='upper right')
+    #ax1.add_artist(at)
+    #ax1.set_ylabel('Enrichment score')
+    #ax1.set_xticklabels([])
+    #ax1.set_xlim([0,len(hits)-1])
+    #plt.style.use('seaborn-white')
+    #ax2 = fig.add_axes([0.1,0.05,0.85,0.15])
+    #for index, hit in enumerate(hits):
+    #    if hit:
+    #        ax2.plot([index+0.5,index+0.5],[0,1],color='black',linewidth=0.5)
+    #ax2.set_yticks([])
+    #ax2.set_xlim([0,len(hits)])
+    #plt.savefig(f'{name}.pdf')
 
 
 # ------------------------------------
