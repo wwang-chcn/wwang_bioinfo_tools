@@ -163,6 +163,7 @@ def opt_validate(optparser):
                 f'Can not find the bigwig file: {options.bigWigFiles[i]}.\n')
             optparser.print_help()
             sys.exit(1)
+       options.bigWigFiles[i] = os.path.expanduser(options.bigWigFiles[i]) 
     
     if not os.path.isfile(options.bedFile):
         sys.stdout.write(f'Can not find the bigwig file: {options.bedFile}.\n')
@@ -200,7 +201,10 @@ def prepare_capture(options):
     # creat temp dirctory
     CMD = f'mkdir {options.name} && cd {options.name}\n'
     for i in range(len(options.bigWigFiles)):
-        CMD += f'ln -s ../{options.bigWigFiles[i]} .\n'
+        if options.bigWigFiles[i].startswith('/'):
+            CMD += f'ln -s {options.bigWigFiles[i]} .\n'
+        else:
+            CMD += f'ln -s ../{options.bigWigFiles[i]} .\n'
     os.system(CMD)
     # write temp bed files
     sub_sizes = int(len(bed) / options.process)
