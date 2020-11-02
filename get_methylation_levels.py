@@ -38,6 +38,8 @@ def prepare_optparser():
                          help='Names for output file(s).')
     optparser.add_option('-c', '--coverage',dest='coverage',type='int',\
                          help='Coverage threshold for region to be consider.\nDefault is 5.', default=5)
+    optparser.add_option('--strand',dest='strand',action='store_true',\
+                         help='If consider the oritention of bed file.')
     return optparser
 
 
@@ -118,7 +120,7 @@ def smart_write_open(file_name):
     fhd.close()
 
 
-def get_file_meth(bed_file, output_file, points, methylation, coverage):
+def get_file_meth(bed_file, output_file, points, methylation, coverage, strand):
     basename = bed_file.rsplit('.',1)[0]
     with open(bed_file) as intput_fhd, \
          smart_write_open(output_file) as output_fhd:
@@ -128,13 +130,23 @@ def get_file_meth(bed_file, output_file, points, methylation, coverage):
             if not line:
                 continue
             line_n += 1
-            line = line.strip().split()
+            line = line.strip().split('\t')
             chrom, start, end = line[:3]
+            if strand:
+                if len(line) < 6:
+                    line = "\t".join(line)
+                    sys.stdout.write(f'--strand is set but bed file do not have 6th column for line: {line}\n')
+                    sys.exit(1)
+                r_strand = line[5]
+                if not r_strand in ['-','+']:
+                    line = "\t".join(line)
+                    sys.stdout.write(f'Invalid strand for line: {line}\n')
+                    sys.exit(1)
             start, end = int(start), int(end)
             name = line[3] if len(line) > 3 else f'R{line_n:d}'
             meth_val = get_region_meth((chrom, start, end), points, methylation, coverage)
-            output_csv.writerow(meth_val)
- 
+            output_csv.writerow(meth_val[::-1] if r_strand == '-' else meth_val)
+
 
 # ------------------------------------
 # Main function
@@ -149,7 +161,7 @@ def main():
 
     # get methylation information for each file
     for bed_file, output_file in zip(options.bed, options.output):
-        get_file_meth(bed_file, output_file, options.points, methylation, options.coverage)
+        get_file_meth(bed_file, output_file, options.points, methylation, options.coverage, options.strand)
 
 
 # ------------------------------------
