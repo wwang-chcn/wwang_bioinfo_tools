@@ -132,6 +132,7 @@ def get_file_meth(bed_file, output_file, points, methylation, coverage, strand):
             line_n += 1
             line = line.strip().split('\t')
             chrom, start, end = line[:3]
+            r_strand = '+'
             if strand:
                 if len(line) < 6:
                     line = "\t".join(line)
