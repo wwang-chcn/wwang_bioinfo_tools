@@ -37,10 +37,10 @@ grep -v "_" ${genomeVersion}.chrom.sizes > ${genomeVersion}_main.chrom.sizes
 # refGene
 rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/refGene.txt.gz ${genomeVersion}.refGene.txt.gz
 gunzip ${genomeVersion}.refGene.txt.gz
-cat ${genomeVersion}.refGene.txt | cut -f 2-11 | genePredToGtf -utr file stdin ${genomeVersion}.refGene.gtf
-python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
 cut -f 2-11 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePred
 cut -f 2-16 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePredExt
+genePredToGtf -utr file ${genomeVersion}.refGene.genePred ${genomeVersion}.refGene.gtf
+python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
 genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
 
 
@@ -48,10 +48,10 @@ genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
 rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensGene.txt.gz ${genomeVersion}.ensGene.txt.gz
 if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
     gunzip ${genomeVersion}.ensGene.txt.gz
-    cat ${genomeVersion}.ensGene.txt | cut -f 2-11 | genePredToGtf -utr file stdin ${genomeVersion}.ensGene.gtf
-    python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.gtf
     cut -f 2-11 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePred
     cut -f 2-16 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePredExt
+    genePredToGtf -utr file ${genomeVersion}.ensGene.genePred ${genomeVersion}.ensGene.gtf
+    python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.gtf
     genePredToBed ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.bed
     rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensemblToGeneName.txt.gz ${genomeVersion}.ensemblToGeneName.txt.gz
     gunzip ${genomeVersion}.ensemblToGeneName.txt.gz
