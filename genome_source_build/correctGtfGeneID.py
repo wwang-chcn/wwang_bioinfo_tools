@@ -22,7 +22,7 @@ with open(genePredExtFile) as fhd:
     gene = {line.strip().split()[0]: line.strip().split()[11] for line in fhd}
 
 with open(gtfFile) as inputFhd, \
-     open('gtf.temp', 'w') as outputFhd:
+     open('gtf.tmp', 'w') as outputFhd:
     for line in inputFhd:
         line = line.strip().split('\t')
         attribute = line[-1].split()
@@ -33,4 +33,4 @@ with open(gtfFile) as inputFhd, \
         	attribute[1] = '"'+gene[transcript[0]]+'_'+transcript[1]+'";'
         outputFhd.write('{}\t{}\n'.format('\t'.join(line[:-1]),' '.join(attribute)))
 
-os.rename('gtf.temp',gtfFile)
+os.rename('gtf.tmp',gtfFile)
