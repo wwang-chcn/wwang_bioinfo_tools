@@ -43,6 +43,6 @@ if len(sys.argv) < 4:
     sys.exit(0)
 
 
-subprocess.call(f'build_genomeBG -g {sqlite3File} -w {sys.argv[3]} -o {sqlite3File.rsplit('.',1)[0]}.bgCorrected.sq3'.split())
+subprocess.call(f'build_genomeBG -g {sqlite3File} -w {sys.argv[3]} -o {sqlite3File.rsplit(".",1)[0]}.bgCorrected.sq3'.split())
 
 
