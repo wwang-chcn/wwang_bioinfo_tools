@@ -29,7 +29,9 @@ bismark_genome_preparation --parallel 8 --single_fasta ./bismark_index/raw
 bismark_genome_preparation --parallel 8 --single_fasta ./bismark_index/main
 
 
-rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/bigZips/${genomeVersion}.chrom.sizes .
+twoBitInfo ${genomeVersion}.2bit ${genomeVersion}.chrom.sizes
+grep -v "_" ${genomeVersion}.chrom.sizes > ${genomeVersion}_main.chrom.sizes
+
 
 # annotation
 # refGene
