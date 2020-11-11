@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 
-import os, sys
+import os
+import sys
 
-USAGE = '{} <genomeVersion>'.format(os.path.basename(sys.argv[0]))
+USAGE = f'{os.path.basename(sys.argv[0])} <genomeVersion>'
 
 if len(sys.argv) < 2:
     sys.stdout.write('No enought arguments!\n')
@@ -11,8 +12,8 @@ if len(sys.argv) < 2:
 
 genomeVersion = sys.argv[1]
 
-with open('{}.fa'.format(genomeVersion)) as inputFhd, \
-     open('{}_main.fa'.format(genomeVersion), 'w') as outputFhd:
+with open(f'{genomeVersion}.fa') as inputFhd, \
+     open(f'{genomeVersion}_main.fa', 'w') as outputFhd:
     flag = False
     for line in inputFhd:
         if line[0] == '>':

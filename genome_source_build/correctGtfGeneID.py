@@ -1,11 +1,14 @@
 #! /usr/bin/env python
 
 # Jun-28-2019
+# Update: Nov-11-2020
+# More pythonic
 
-import os, sys
+import os
+import sys
 from collections import defaultdict
 
-USAGE = '{} <genePredExt> <gtf>'.format(os.path.basename(sys.argv[1]))
+USAGE = f'{os.path.basename(sys.argv[1])} <genePredExt> <gtf>'
 
 if len(sys.argv) < 3:
     sys.stdout.write('No enought arguments!\n')

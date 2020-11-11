@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Update: Nov-11-2020
+
 USAGE="<genomeVersion>"
 
 MY_PATH="`dirname \"$0\"`"
@@ -34,7 +36,7 @@ rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/bigZips/
 rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/refGene.txt.gz ${genomeVersion}.refGene.txt.gz
 gunzip ${genomeVersion}.refGene.txt.gz
 cat ${genomeVersion}.refGene.txt | cut -f 2-11 | genePredToGtf -utr file stdin ${genomeVersion}.refGene.gtf
-python ../bin/correctGtfGeneID.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
+python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
 cut -f 2-11 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePred
 cut -f 2-16 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePredExt
 genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
@@ -45,17 +47,17 @@ rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database
 if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
     gunzip ${genomeVersion}.ensGene.txt.gz
     cat ${genomeVersion}.ensGene.txt | cut -f 2-11 | genePredToGtf -utr file stdin ${genomeVersion}.ensGene.gtf
-    python ../bin/correctGtfGeneID.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.gtf
+    python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.gtf
     cut -f 2-11 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePred
     cut -f 2-16 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePredExt
     genePredToBed ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.bed
     rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensemblToGeneName.txt.gz ${genomeVersion}.ensemblToGeneName.txt.gz
     gunzip ${genomeVersion}.ensemblToGeneName.txt.gz
-    python ../bin/getEnsGeneToGeneName.py ${genomeVersion}
+    python ${MY_PATH}/getEnsGeneToGeneName.py ${genomeVersion}
 fi
 
-python ../bin/genePredExtToSqlite3.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.sq3
+python ${MY_PATH}/genePredExtToSqlite3.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.sq3
 if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
-    python ../bin/genePredExtToSqlite3.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.sq3
+    python ${MY_PATH}/genePredExtToSqlite3.py ${genomeVersion}.ensGene.genePredExt ${genomeVersion}.ensGene.sq3
 fi
 
