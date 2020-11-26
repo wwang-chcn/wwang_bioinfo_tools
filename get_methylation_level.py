@@ -4,6 +4,7 @@
 
 import os
 import sys
+import csv
 from optparse import OptionParser
 import numpy as np
 from collections import defaultdict
@@ -101,10 +102,19 @@ def get_region_meth(region, methylation, coverage):
     return np.nan if n == 0 or total / n < coverage else m / total
 
 
+@contextmanager
+def smart_write_open(file_name):
+    fhd = gzip.open(file_name, 'wt') if file_name.endswith('.gz') else open(file_name, 'w')
+    yield fhd
+    fhd.close()
+
+
 def get_file_meth(bed_file, output_file, methylation, coverage):
     basename = bed_file.rsplit('.',1)[0]
     with open(bed_file) as intput_fhd, \
-         open(output_file, 'w') as output_fhd:
+         smart_write_open(output_file) as output_fhd:
+        output_csv = csv.writer(output_fhd)
+        output_csv.writerow(['chrom','start','end','name','value','strand'])
         line_n = 0
         for line in intput_fhd:
             if not line:
@@ -114,8 +124,10 @@ def get_file_meth(bed_file, output_file, methylation, coverage):
             chrom, start, end = line[:3]
             start, end = int(start), int(end)
             name = line[3] if len(line) > 3 else f'R{line_n:d}'
+            strand = line[5] if len(line>5) else '.'
             value = get_region_meth((chrom, start, end), methylation, coverage)
-            output_fhd.write(f'{chrom}\t{start:d}\t{end:d}\t{name}\t{value:.3f}\t.\n')
+            output_line = [chrom, start, end, name, value, strand]
+            output_csv.writerow(output_line)
  
 
 # ------------------------------------
