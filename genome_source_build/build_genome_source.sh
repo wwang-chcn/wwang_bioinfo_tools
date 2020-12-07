@@ -39,8 +39,7 @@ rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database
 gunzip ${genomeVersion}.refGene.txt.gz
 cut -f 2-11 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePred
 cut -f 2-16 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePredExt
-genePredToGtf -utr file ${genomeVersion}.refGene.genePred ${genomeVersion}.refGene.gtf
-python ${MY_PATH}/correctGtfGeneID.py ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
+genePredToGtf -utr file ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.gtf
 genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
 
 
