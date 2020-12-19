@@ -87,6 +87,8 @@ def load_meth(meth_file):
             if line[0] == '#' or not line:
                 continue
             line = line.strip().split()
+            if len(line) < 15: # handle extra line in the bottom of XX.bam.G.bed
+                continue
             methylation[line[0]][int(line[1])] = (float(line[3]), int(line[4]), int(line[5]))
     return methylation
 
