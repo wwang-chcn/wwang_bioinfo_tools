@@ -61,7 +61,7 @@ def opt_validate(optparser):
     parentPath = options.dir
     parentPath = parentPath.rsplit('/',1)[0]
     if not os.path.isdir(parentPath):
-        sys.stdout(f'Warning! Directory {parentPath} is not exist.\n')
+        sys.stdout.write(f'Warning! Directory {parentPath} is not exist.\n')
     
     # input method must be valid
     if options.method:
