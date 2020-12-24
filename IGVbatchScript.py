@@ -82,7 +82,10 @@ def main():
     options = opt_validate(prepare_optparser())
     
     if not os.path.isdir(options.dir):
-        os.mkdir(os.path.abspath(options.dir))
+        try:
+            os.mkdir(os.path.abspath(options.dir))
+        except FileNotFoundError:
+            pass
     
     rfhd = open(options.name+'.txt', 'w')
     rfhd.write(f'snapshotDirectory {os.path.abspath(options.dir)}\n')
