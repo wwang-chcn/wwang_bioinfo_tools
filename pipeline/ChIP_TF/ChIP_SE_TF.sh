@@ -47,10 +47,14 @@ mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 # ----- mapping & filtering -----
 function mapping_filtering {
     if [[ ! -e 2_signal/${name}_reads.bed ]]; then
-        reads_file_process ${sampleFiles[@]} && \
-        trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --no_report_file --suppress_warn ${trim_galore_input[@]} 2>&1 | tee 0_raw_data/Trim_galore_${name}.log && \
-        (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log && \
-        rm ${filteredReads[@]} && \
+        if [[ ! -e 1_mapping/${name}.bam ]]; then
+            reads_file_process ${ChIPsampleFiles[@]}
+            if [[ ! -e 0_raw_data/${mapping_input_file[1]} ]]; then
+                trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --suppress_warn ${trim_galore_input[@]}
+            fi
+            (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log && \
+            rm ${filteredReads[@]} 
+        fi
         bamToBed -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print}' > 2_signal/${name}_reads.bed
     fi
 }
