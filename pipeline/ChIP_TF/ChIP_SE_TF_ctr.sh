@@ -53,7 +53,14 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${name}_reads.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles[@]}
-            if [[ ! -e 0_raw_data/${mapping_input_file[1]} ]]; then
+            filteredReadsFlag=false
+            for filteredReadsFile in ${filteredReads[@]}; do
+                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                    filteredReadsFlag=true
+                    break
+                fi
+            done
+            if [[ "$filteredReadsFlag" = true ]]; then
                 trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --suppress_warn ${trim_galore_input[@]}
             fi
             (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log && \
@@ -64,7 +71,14 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${controlName}_reads.bed ]]; then
         if [[ ! -e 1_mapping/${controlName}.bam ]]; then
             reads_file_process ${ctrSampleFiles[@]}
-            if [[ ! -e 0_raw_data/${mapping_input_file[1]} ]]; then
+            filteredReadsFlag=false
+            for filteredReadsFile in ${filteredReads[@]}; do
+                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                    filteredReadsFlag=true
+                    break
+                fi
+            done
+            if [[ "$filteredReadsFlag" = true ]]; then
                 trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --suppress_warn ${trim_galore_input[@]}
             fi
             (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${controlName}.bam) 2> 1_mapping/${controlName}_mapping.log && \

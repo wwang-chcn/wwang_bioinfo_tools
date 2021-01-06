@@ -61,7 +61,14 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${controlName}_fragments.bed ]]; then
         if [[ ! -e 1_mapping/${controlName}.bam ]]; then
             reads_file_process ${ctrsampleFiles1[@]} ${ctrsampleFiles2[@]}
-            if [[ ! -e 0_raw_data/${filteredReads1[1]} && ! -e 0_raw_data/${filteredReads1[2]}  ]]; then
+            filteredReadsFlag=false
+            for filteredReadsFile in ${filteredReads1[@]} ${filteredReads2[@]}; do
+                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                    filteredReadsFlag=true
+                    break
+                fi
+            done
+            if [[ "$filteredReadsFlag" = true ]]; then
                 trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
             fi
             (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${controlName}.bam) 2> 1_mapping/${controlName}_mapping.log && \
@@ -73,7 +80,14 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${name}_fragments.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles1[@]} ${ChIPsampleFiles2[@]}
-            if [[ ! -e 0_raw_data/${filteredReads1[1]} && ! -e 0_raw_data/${filteredReads1[2]}  ]]; then
+            filteredReadsFlag=false
+            for filteredReadsFile in ${filteredReads1[@]} ${filteredReads2[@]}; do
+                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                    filteredReadsFlag=true
+                    break
+                fi
+            done
+            if [[ "$filteredReadsFlag" = true ]]; then
                 trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
             fi
             (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log && \
