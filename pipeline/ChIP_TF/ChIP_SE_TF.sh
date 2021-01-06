@@ -1,9 +1,8 @@
 #! /bin/bash
 
-#! /bin/bash
-
 function print_help {
-    echo "$0 <name> <processer> <genomeVersion> <sample[,+]>"
+    echo "$0 <name> <processer> <genomeVersion> <sample[,+]> [main_chrom=true]"
+    echo "Use true in 5th parameters for only map to main_chrom"
 }
 function join_by {
     local IFS="$1"; shift; echo "$*"
@@ -39,6 +38,11 @@ if [[ $# -lt 4 ]]; then
     exit 1
 fi
 
+case $5 in
+    true ) main_chrom=true;;
+    * ) print_help; exit 1;;
+esac
+
 IFS=',' read -r -a sampleFiles <<< ${sample}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
@@ -59,7 +63,11 @@ function mapping_filtering {
             if [[ "$filteredReadsFlag" = true ]]; then
                 trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --suppress_warn ${trim_galore_input[@]}
             fi
-            (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log && \
+            if [[ "$main_chrom" = true ]]; then
+                (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log
+            else
+                (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log
+            fi
             rm ${filteredReads[@]} 
         fi
         bamToBed -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' > 2_signal/${name}_reads.bed
@@ -82,7 +90,7 @@ function piling_up {
         ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_reads_shift.bdg && \
+        genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \
         bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_reads_shift.bed ${name}_reads_shift.bdg
     fi
