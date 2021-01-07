@@ -1,7 +1,8 @@
 #! /bin/bash
 
 function print_help {
-    echo "$0 <name> <processer> <genomeVersion> <ChIPsample1> <ChIPsample2> [SNP_info] [SNP_strain1] [SNP_strain2]"
+    echo "$0 <name> <processer> <genomeVersion> <ChIPsample1> <ChIPsample2> <main_chrom> [SNP_info] [SNP_strain1] [SNP_strain2]"
+    echo "Use true in 6th parameters for only map to main_chrom"
 }
 function join_by {
     local IFS="$1"; shift; echo "$*"
@@ -32,17 +33,23 @@ function compress_bed {
 
 # ----- parameters -----
 
+if [[ $# -lt 6 ]]; then
+    echo No enought parameters!
+    print_help
+    exit 1
+fi
+
 name=${1}
 processer=${2}
 genomeVersion=${3}
 ChIPsample1=${4}
 ChIPsample2=${5}
 
-if [[ $# -lt 5 ]]; then
-    echo No enought parameters!
-    print_help
-    exit 1
-fi
+case $6 in
+    true ) main_chrom=true;;
+    false ) main_chrom=false;;
+    * ) print_help; exit 1;;
+esac
 
 IFS=',' read -r -a ChIPsampleFiles1 <<< ${ChIPsample1}
 IFS=',' read -r -a ChIPsampleFiles2 <<< ${ChIPsample2}
@@ -55,13 +62,24 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${name}_fragments.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles1[@]} ${ChIPsampleFiles2[@]}
-            if [[ ! -e ${mapping_input_file1} || ! -e ${mapping_input_file2} ]]; then
-            trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --no_report_file --suppress_warn
+            filteredReadsFlag=false
+            for filteredReadsFile in ${filteredReads1[@]} ${filteredReads2[@]}; do
+                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                    filteredReadsFlag=true
+                    break
+                fi
+            done
+            if [[ "$filteredReadsFlag" = true ]]; then
+                trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
             fi
-            (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log  && \
+            if [[ "$main_chrom" = true ]]; then
+                (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log
+            else
+                (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log
+            fi
             rm ${filteredReads1[@]} ${filteredReads2[@]}
         fi
-        bamToBed -bedpe -i 1_mapping/${name}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t."; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t."}' | awk '$1 !~ /_/{if($3>$2) print}' > 2_signal/${name}_raw_fragments.bed
+        bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}'  | sort -S 1% -k1,1 -k2,2n | uniq > 2_signal/${name}_fragments.bed
     fi
 }
 
@@ -79,7 +97,7 @@ function piling_up {
         nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments_shift.bdg && \
+        genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
         bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
         cd ..
@@ -100,7 +118,7 @@ function SNP {
         nucleosomeShiftPairEnd.sh ${name1}_fragments.bed && \
         n=`wc -l ${name1}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name1}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name1}_fragments_shift.bdg && \
+        genomeCoverageBed -bga -scale $c -i ${name1}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name1}_fragments_shift.bdg && \
         bdg2bw.sh ${name1}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name1} && \
         rm ${name1}_fragments_shift.bed ${name1}_fragments_shift.bdg
     fi &
@@ -109,7 +127,7 @@ function SNP {
         nucleosomeShiftPairEnd.sh ${name2}_fragments.bed && \
         n=`wc -l ${name2}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name2}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name2}_fragments_shift.bdg && \
+        genomeCoverageBed -bga -scale $c -i ${name2}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name2}_fragments_shift.bdg && \
         bdg2bw.sh ${name2}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name2} && \
         rm ${name2}_fragments_shift.bed ${name2}_fragments_shift.bdg
     fi &
