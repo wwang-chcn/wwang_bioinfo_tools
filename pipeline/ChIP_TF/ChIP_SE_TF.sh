@@ -52,7 +52,7 @@ mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 function mapping_filtering {
     if [[ ! -e 2_signal/${name}_reads.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
-            reads_file_process ${ChIPsampleFiles[@]}
+            reads_file_process ${sampleFiles[@]}
             filteredReadsFlag=false
             for filteredReadsFile in ${filteredReads[@]}; do
                 if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
