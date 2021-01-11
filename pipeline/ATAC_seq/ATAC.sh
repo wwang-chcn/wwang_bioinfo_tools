@@ -61,6 +61,7 @@ mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal
 function mapping_filtering {
     if [[ ! -e 2_signal/${name}_fragments.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
+            reads_file_process ${readsFiles1[@]} ${readsFiles2[@]}
             filteredReadsFlag=false
             for filteredReadsFile in ${filteredReads1[@]} ${filteredReads2[@]}; do
                 if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
