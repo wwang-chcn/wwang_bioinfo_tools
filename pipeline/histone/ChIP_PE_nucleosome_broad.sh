@@ -79,7 +79,7 @@ function mapping_filtering {
             fi
             rm ${filteredReads1[@]} ${filteredReads2[@]}
         fi
-        bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}'  | sort -S 1% -k1,1 -k2,2n | uniq > 2_signal/${name}_fragments.bed
+        bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' > 2_signal/${name}_raw_fragments.bed
     fi
 }
 
@@ -93,7 +93,7 @@ function peak_calling {
 function piling_up {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
-        cut -f 1-3 ${name}_raw_fragments.bed | sort -k1,1 -k2,2n | uniq > ${name}_fragments.bed
+        cut -f 1-3 ${name}_raw_fragments.bed | sort -S 1% -k1,1 -k2,2n | uniq > ${name}_fragments.bed
         nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
@@ -114,7 +114,7 @@ function SNP {
     fi
     cd 2_signal
     if [[ ! -e ${name1}.bw ]]; then
-        bamToBed -bedpe -i ../1_mapping/${name1}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print}' > ${name1}_fragments.bed && \
+        bamToBed -bedpe -i ../1_mapping/${name1}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2n | uniq > ${name1}_fragments.bed && \
         nucleosomeShiftPairEnd.sh ${name1}_fragments.bed && \
         n=`wc -l ${name1}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
@@ -123,7 +123,7 @@ function SNP {
         rm ${name1}_fragments_shift.bed ${name1}_fragments_shift.bdg
     fi &
     if [[ ! -e ${name2}.bw ]]; then
-        bamToBed -bedpe -i ../1_mapping/${name2}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print}' > ${name2}_fragments.bed && \
+        bamToBed -bedpe -i ../1_mapping/${name2}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2n | uniq > ${name2}_fragments.bed && \
         nucleosomeShiftPairEnd.sh ${name2}_fragments.bed && \
         n=`wc -l ${name2}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
@@ -137,7 +137,7 @@ function SNP {
 
 # ----- clearning_up -----
 function clearning_up {
-    #rm 1_mapping/${name}.bam
+    rm 1_mapping/${name}.bam
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
     if [[ $# -eq 8 ]]; then
