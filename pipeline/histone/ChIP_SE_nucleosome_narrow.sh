@@ -30,7 +30,7 @@ function compress_bed {
 
 # ----- parameters -----
 
-if [[ $# -lt 6 ]]; then
+if [[ $# -lt 5 ]]; then
     echo No enought parameters!
     print_help
     exit 1
