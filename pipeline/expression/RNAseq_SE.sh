@@ -58,7 +58,7 @@ IFS=',' read -r -a readsFiles <<< ${reads}
 function mapping {
     if [[ ! -e 1_mapping/${name}.bam ]]; then
         reads_file_process ${readsFiles[@]} && \
-        trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --trim-n -o 0_raw_data/ --no_report_file ${trim_galore_input[@]} 2> 0_raw_data/Trim_galore_${name}.log && \
+        trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --trim-n -o 0_raw_data/ --no_report_file ${trim_galore_input[@]} 2> 0_raw_data/Trim_galore_${name}.log && \
         hisat2 --summary-file 1_mapping/Mapping_${name}.log --new-summary -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bS > 1_mapping/${name}.bam && \
         rm ${filteredReads[@]}
     fi
