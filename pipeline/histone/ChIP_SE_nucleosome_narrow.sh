@@ -72,7 +72,7 @@ function mapping_filtering {
             else
                 (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed  --no-discordant --no-unal -U ${mapping_input_file} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log
             fi
-            rm ${filteredReads1[@]} ${filteredReads2[@]}
+            rm ${filteredReads[@]}
         fi
         bamToBed -i 1_mapping/${name}.bam | awk '$1 !~ /_/{print $0} $1 ~ /NC/{print $0}' > 2_signal/${name}_raw_reads.bed
     fi
