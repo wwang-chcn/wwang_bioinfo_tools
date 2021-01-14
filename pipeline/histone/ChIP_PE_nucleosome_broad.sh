@@ -4,9 +4,11 @@ function print_help {
     echo "$0 <name> <processer> <genomeVersion> <ChIPsample1> <ChIPsample2> <main_chrom> [SNP_info] [SNP_strain1] [SNP_strain2]"
     echo "Use true in 6th parameters for only map to main_chrom"
 }
+
 function join_by {
     local IFS="$1"; shift; echo "$*"
 }
+
 function reads_file_process {
     sampleReadFiles1=()
     sampleReadFiles2=()
@@ -21,13 +23,16 @@ function reads_file_process {
     for readFile in ${sampleReadFiles2[@]}; do splitFileName=`echo ${readFile%.*}`; splitFileName=`echo ${splitFileName%.*}`; filteredReads2+=(0_raw_data/${splitFileName}_val_2.fq.gz); done
     mapping_input_file2=`join_by , ${filteredReads2[@]}`
 }
+
 function compress_bed {
     bedFile=${1}
     genomeVersion=${2}
-    col=`head -1 ${bedFile} | awk '{print NF}'`
-    plus=`bc <<< "$col -3"`
-    intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp
-    bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
+    if [[ ! -e ${bedFile::(${#bedFile}-2)}b ]]; then
+        col=`head -1 ${bedFile} | awk '{print NF}'`
+        plus=`bc <<< "$col -3"`
+        intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp
+        bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
+    fi
     rm ${bedFile} ${bedFile}.tmp
 }
 
@@ -59,7 +64,7 @@ mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 
 # ----- mapping & filtering -----
 function mapping_filtering {    
-    if [[ ! -e 2_signal/${name}_fragments.bed ]]; then
+    if [[ ! -e 2_signal/${name}_fragments.bed && ! -e 2_signal/${name}_fragments.bb ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles1[@]} ${ChIPsampleFiles2[@]}
             filteredReadsFlag=false
@@ -85,7 +90,10 @@ function mapping_filtering {
 
 # ----- macs -----
 function peak_calling {
-    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
+    if [[ ! -e 2_signal/${name}_raw_fragments.bed ]]; then
+        bigBedToBed 2_signal/${name}_raw_fragments.bb 2_signal/${name}_raw_fragments.bed
+    fi
     macs2 callpeak -f BEDPE -t 2_signal/${name}_raw_fragments.bed --outdir 3_peak -n ${name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --broad-cutoff 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
 }
 
