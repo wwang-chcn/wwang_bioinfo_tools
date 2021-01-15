@@ -194,7 +194,7 @@ function clearning_up {
     compress_bed 2_signal/${controlName}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
-    if [[ $# -eq 8 ]]; then
+    if [[ $# -eq 12 ]]; then
         compress_bed 2_signal/${name1}_fragments.bed ${genomeVersion}
         compress_bed 2_signal/${name2}_fragments.bed ${genomeVersion}
     fi
@@ -204,10 +204,10 @@ function clearning_up {
 mapping_filtering
 peak_calling
 piling_up
-if [[ $# -eq 9 ]]; then
-  SNP_info=${7}
-  SNP_strain1=${8}
-  SNP_strain2=${9}
+if [[ $# -eq 12 ]]; then
+  SNP_info=${10}
+  SNP_strain1=${11}
+  SNP_strain2=${12}
   SNP
 fi
 clearning_up
