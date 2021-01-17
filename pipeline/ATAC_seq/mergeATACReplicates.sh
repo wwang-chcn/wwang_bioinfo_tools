@@ -52,7 +52,7 @@ bedToBigWig
 compress_bed ${name}_OCR_SE_reads.bed ${genomeVersion}
 cd ..
 for i in $@; do
-    if [[ ! -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
+    if [[ -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
         rm 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
     fi
 done
