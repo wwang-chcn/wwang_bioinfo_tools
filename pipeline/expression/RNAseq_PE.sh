@@ -71,9 +71,13 @@ function expression_value {
     samtools sort -@ $((${processer}-1)) -o ${name}_sorted.bam ${name}.bam && samtools index -@ $((${processer}-1)) ${name}_sorted.bam && \
     cd ../2_expression_value
     stringtie ../1_mapping/${name}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name} -A RNA_seq_${name}_refGene_coverage.txt -o RNA_seq_${name}_refGene_coverage.gtf -e -B &
-    stringtie ../1_mapping/${name}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name} -A RNA_seq_${name}_ensGene_coverage.txt -o RNA_seq_${name}_ensGene_coverage.gtf -e -B &
+    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+        stringtie ../1_mapping/${name}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name} -A RNA_seq_${name}_ensGene_coverage.txt -o RNA_seq_${name}_ensGene_coverage.gtf -e -B
+    fi &
     samtools view ../1_mapping/${name}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name}_refGene.read_cnt &
-    samtools view ../1_mapping/${name}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name}_ensGene.read_cnt &
+    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+        samtools view ../1_mapping/${name}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name}_ensGene.read_cnt
+    fi &
     wait
     rm ../1_mapping/${name}_sorted.bam ../1_mapping/${name}_sorted.bam.bai
     cd ..
@@ -91,9 +95,13 @@ function signal {
 function basic_QC {
     cd 4_basic_QC
     read_distribution.py -i ../1_mapping/${name}.bam -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.bed > RNA_seq_${name}_refGene_read_distribution.txt &
-    read_distribution.py -i ../1_mapping/${name}.bam -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed > RNA_seq_${name}_ensGene_read_distribution.txt &
+    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
+        read_distribution.py -i ../1_mapping/${name}.bam -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed > RNA_seq_${name}_ensGene_read_distribution.txt
+    fi &
     geneBody_coverage2.py -i ../3_signal/RNA_seq_${name}.bw -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.bed -o RNA_seq_${name}_refGene &
-    geneBody_coverage2.py -i ../3_signal/RNA_seq_${name}.bw -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed -o RNA_seq_${name}_ensGene &
+    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
+        geneBody_coverage2.py -i ../3_signal/RNA_seq_${name}.bw -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed -o RNA_seq_${name}_ensGene
+    fi &
     wait
     cd ..
 }
@@ -109,10 +117,14 @@ function SNP {
         samtools sort -@ $((${processer}-1)) -o ${name1}_sorted.bam ${name1}.bam && samtools index -@ $((${processer}-1)) ${name1}_sorted.bam && \
         cd ../2_expression_value && \
         stringtie ../1_mapping/${name1}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name1} -A ${name1}_refGene_coverage.txt -o ${name1}_refGene_coverage.gtf -e -B && \
-        stringtie ../1_mapping/${name1}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name1} -A ${name1}_ensGene_coverage.txt -o ${name1}_ensGene_coverage.gtf -e -B && \
+        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+            stringtie ../1_mapping/${name1}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name1} -A ${name1}_ensGene_coverage.txt -o ${name1}_ensGene_coverage.gtf -e -B
+        fi && \
         rm ../1_mapping/${name1}_sorted.bam ../1_mapping/${name1}_sorted.bam.bai && \
         samtools view ../1_mapping/${name1}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name1}_refGene.read_cnt && \
-        samtools view ../1_mapping/${name1}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name1}_ensGene.read_cnt && \
+        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+            samtools view ../1_mapping/${name1}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name1}_ensGene.read_cnt
+        fi && \
         cd ../3_signal && \
         cat ../1_mapping/${name1}.bam | python ~/bin/myscripts/bamToBed.py | awk '$1 !~ /_/{print}' > RNA_seq_${name1}.bed && \
         bedToBigWig RNA_seq_${name1} RNA_seq_${name1} RNA_seq_${name1}
@@ -123,10 +135,14 @@ function SNP {
         samtools sort -@ $((${processer}-1)) -o ${name2}_sorted.bam ${name2}.bam && samtools index -@ $((${processer}-1)) ${name2}_sorted.bam && \
         cd ../2_expression_value && \
         stringtie ../1_mapping/${name2}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name2} -A ${name2}_refGene_coverage.txt -o ${name2}_refGene_coverage.gtf -e -B && \
-        stringtie ../1_mapping/${name2}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name2} -A ${name2}_ensGene_coverage.txt -o ${name2}_ensGene_coverage.gtf -e -B && \
+        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+            stringtie ../1_mapping/${name2}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name2} -A ${name2}_ensGene_coverage.txt -o ${name2}_ensGene_coverage.gtf -e -B
+        fi && \
         rm ../1_mapping/${name2}_sorted.bam ../1_mapping/${name2}_sorted.bam.bai && \
         samtools view ../1_mapping/${name2}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name2}_refGene.read_cnt && \
-        samtools view ../1_mapping/${name2}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name2}_ensGene.read_cnt && \
+        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+            samtools view ../1_mapping/${name2}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name2}_ensGene.read_cnt
+        fi && \
         cd ../3_signal && \
         cat ../1_mapping/${name2}.bam | python ~/bin/myscripts/bamToBed.py | awk '$1 !~ /_/{print}' > RNA_seq_${name2}.bed && \
         bedToBigWig RNA_seq_${name2}_fragments RNA_seq_${name2} RNA_seq_${name2}
