@@ -48,13 +48,13 @@ def source_files_check(name, genomeVersion, reads1_files, reads2_files):
         flag = False
     for i in range(len(reads1_files)):
         if reads1_files[i] == reads2_files[i]:
-            os.sys.stdout.write(f'Error! The {i}-th input reads file1 and reads file2 {reads1_files[i]} were same!\n')
+            os.sys.stdout.write(f'Warning! The {i}-th input reads file1 and reads file2 {reads1_files[i]} were same!\n')
             flag = False
         if not os.path.isfile(f'./0_raw_data/{reads1_files[i]}'):
-            os.sys.stdout.write(f'Error! Input reads file {reads1_files[i]} do not exist!\n')
+            os.sys.stdout.write(f'Warning! Input reads file {reads1_files[i]} do not exist!\n')
             flag = False
         if not os.path.isfile(f'./0_raw_data/{reads2_files[i]}'):
-            os.sys.stdout.write(f'Error! Input reads file {reads2_files[i]} do not exist!\n')
+            os.sys.stdout.write(f'Warning! Input reads file {reads2_files[i]} do not exist!\n')
             flag = False
 
     return flag
@@ -86,9 +86,9 @@ def main():
         mapping_csv.writerow(['Sample','Label','Raw Reads Pair (adapter filtered)','Mapped Reads Pair (mapped cordantly, q30 filtered)','Mapping Efficiency','chrM Fragments','chrM Percentage','Unique Nuclear Fragments','Duplicate Level','Effective Fragments'])
         
         for name, genomeVersion, reads1_files, reads2_files in load_sample('runned.sh'):
-            sys.stdout.write(f'name: {name}\ngenome version: {genomeVersion}\nreads1 files: {reads1_files}\nreads1 files: {reads1_files}\n') # for debugging
+            sys.stdout.write(f'name: {name}\n\tgenome version: {genomeVersion}\n\treads1 files: {reads1_files}\n\treads1 files: {reads1_files}\n') # for debugging
             if not source_files_check(name, genomeVersion, reads1_files, reads2_files):
-                continue
+                pass
             sample, label = name, name # running name, presenting label
             output_line = [sample,label] # sample \t label
             
