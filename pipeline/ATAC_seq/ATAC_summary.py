@@ -46,7 +46,7 @@ def source_files_check(name, genomeVersion, reads1_files, reads2_files):
     if not len(reads1_files) == len(reads2_files):
         os.sys.stdout(f'Error! Number of input reads file1 and reads file2 do not match!\n')
         flag = False
-    for i in range(len(reads1_files))
+    for i in range(len(reads1_files)):
         if reads1_files[i] == reads2_files[i]:
             os.sys.stdout(f'Error! The {i}-th input reads file1 and reads file2 {reads1_files[i]} were same!\n')
             flag = False
@@ -71,7 +71,7 @@ def main():
     
     script_name = os.path.basename(sys.argv[0])
     USAGE = f'{script_name} <outputPrefix>'
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         sys.stdout.write('No enought arguments!\n')
         sys.stdout.write(USAGE+'\n')
         sys.exit(1)
