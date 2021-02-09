@@ -86,7 +86,7 @@ def main():
         mapping_csv.writerow(['Sample','Label','Raw Reads Pair (adapter filtered)','Mapped Reads Pair (mapped cordantly, q30 filtered)','Mapping Efficiency','chrM Fragments','chrM Percentage','Unique Nuclear Fragments','Duplicate Level','Effective Fragments'])
         
         for name, genomeVersion, reads1_files, reads2_files in load_sample('runned.sh'):
-            sys.stdout.write(line) # for debugging
+            sys.stdout.write(f'name: {name}\ngenome version: {genomeVersion}\nreads1 files: {reads1_files}\nreads1 files: {reads1_files}\n') # for debugging
             if not source_files_check(name, genomeVersion, reads1_files, reads2_files):
                 continue
             sample, label = name, name # running name, presenting label
