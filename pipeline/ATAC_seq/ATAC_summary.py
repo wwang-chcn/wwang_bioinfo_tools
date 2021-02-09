@@ -70,13 +70,13 @@ def check_mapping():
 def main():
     
     script_name = os.path.basename(sys.argv[0])
-    USAGE = f'{script_name} <outputPrefix> <sample list file>'
+    USAGE = f'{script_name} <outputPrefix>'
     if len(sys.argv) < 3:
         sys.stdout.write('No enought arguments!\n')
         sys.stdout.write(USAGE+'\n')
         sys.exit(1)
     
-    outputPrefix, sampleListFile = sys.argv[1], sys.argv[2]
+    outputPrefix = sys.argv[1]
     
     with open('ATAC_summary_{}_mapping_info.csv'.format(outputPrefix),'w') as mappingFhd, \
          open('ATAC_summary_{}_fragments_length.csv'.format(outputPrefix), 'w') as flFhd:
