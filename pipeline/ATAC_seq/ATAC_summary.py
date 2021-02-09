@@ -37,24 +37,24 @@ def source_files_check(name, genomeVersion, reads1_files, reads2_files):
     index_files_suffix = ['.1.bt2','.2.bt2','.3.bt2','.4.bt2','.rev.1.bt2','.rev.2.bt2']
     for suffix in index_files_suffix:
         if not os.path.isfile(os.path.expanduser(f'~/source/bySpecies/{genomeVersion}/{genomeVersion}{suffix}')):
-            os.sys.stdout(f'Error! No bowtie2 index file: {genomeVersion}{suffix} in {os.path.expanduser(f"~/source/bySpecies/{genomeVersion}")}\n')
+            os.sys.stdout.write(f'Error! No bowtie2 index file: {genomeVersion}{suffix} in {os.path.expanduser(f"~/source/bySpecies/{genomeVersion}")}\n')
             flag = False
 
     # read_file_check
     reads1_files = reads1_files.split(',')
     reads2_files = reads2_files.split(',')
     if not len(reads1_files) == len(reads2_files):
-        os.sys.stdout(f'Error! Number of input reads file1 and reads file2 do not match!\n')
+        os.sys.stdout.write(f'Error! Number of input reads file1 and reads file2 do not match!\n')
         flag = False
     for i in range(len(reads1_files)):
         if reads1_files[i] == reads2_files[i]:
-            os.sys.stdout(f'Error! The {i}-th input reads file1 and reads file2 {reads1_files[i]} were same!\n')
+            os.sys.stdout.write(f'Error! The {i}-th input reads file1 and reads file2 {reads1_files[i]} were same!\n')
             flag = False
         if not os.path.isfile(f'./0_raw_data/{reads1_files[i]}'):
-            os.sys.stdout(f'Error! Input reads file {reads1_files[i]} do not exist!\n')
+            os.sys.stdout.write(f'Error! Input reads file {reads1_files[i]} do not exist!\n')
             flag = False
         if not os.path.isfile(f'./0_raw_data/{reads2_files[i]}'):
-            os.sys.stdout(f'Error! Input reads file {reads2_files[i]} do not exist!\n')
+            os.sys.stdout.write(f'Error! Input reads file {reads2_files[i]} do not exist!\n')
             flag = False
 
     return flag
