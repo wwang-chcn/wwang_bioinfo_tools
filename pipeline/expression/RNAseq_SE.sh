@@ -69,11 +69,11 @@ function expression_value {
     samtools sort -@ $((${processer}-1)) -o ${name}_sorted.bam ${name}.bam && samtools index ${name}_sorted.bam && \
     cd ../2_expression_value
     stringtie ../1_mapping/${name}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name} -A RNA_seq_${name}_refGene_coverage.txt -o RNA_seq_${name}_refGene_coverage.gtf -e -B &
-    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+    if [[ -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
         stringtie ../1_mapping/${name}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name} -A RNA_seq_${name}_ensGene_coverage.txt -o RNA_seq_${name}_ensGene_coverage.gtf -e -B
     fi &
     samtools view ../1_mapping/${name}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name}_refGene.read_cnt &
-    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
+    if [[ -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
         samtools view ../1_mapping/${name}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name}_ensGene.read_cnt
     fi &
     wait
