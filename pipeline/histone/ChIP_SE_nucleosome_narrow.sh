@@ -54,7 +54,7 @@ mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 
 # ----- mapping & filtering -----
 function mapping_filtering {    
-    if [[ ! -e 2_signal/${name}_reads.bed ]]; then
+    if [[ ! -e 2_signal/${name}_raw_reads.bed ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles[@]}
             filteredReadsFlag=false
@@ -88,7 +88,7 @@ function peak_calling {
 function piling_up {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
-        cut -f 1-3 ${name}_raw_reads.bed | sort -S 1% -k1,1 -k2,2n | uniq > ${name}_reads.bed
+        awk '{print $1"\t"$2"\t"$3"\t.\t"$5"\t"$6}' ${name}_raw_reads.bed | sort -S 1% -k1,1 -k2,2n | uniq | awk '{print $1"\t"$2"\t"$3"\tReads"NR"\t"$5"\t"$6}' > ${name}_reads.bed
         nucleosomeShiftSE.sh ${name}_reads.bed && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
