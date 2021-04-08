@@ -21,4 +21,4 @@ def gen_download_script(rows):
 with open(proj_file) as input_fhd, \
      open(output_file, 'w') as output_fhd:
     intput_csv = csv.DictReader(input_fhd, delimiter='\t')
-    output_fhd.write('\n'.join(gen_download_script(intput_csv)))
+    output_fhd.write('\n'.join(gen_download_script(intput_csv))+'\n')
