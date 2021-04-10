@@ -1,9 +1,11 @@
 # Dependencies
 
-- [Moabs](https://github.com/sunnyisgalaxy/moabs) (bsmap, mcall)
-
-- [Trim_galore](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
-- [samtools](http://www.htslib.org/)
+- [Moabs](https://github.com/sunnyisgalaxy/moabs) (bsmap, mcall, $\geq$ 1.3.9.6)
+- Cutadapt ($\geq$ 3.3)
+- FastQC ($\geq$ 0.11.4)
+- TrimGalore ($\geq$ 0.6.4)
+- htslib ($\geq$ 1.6)
+- SAMtools ($\geq$ 1.6)
 
 # Usage
 
@@ -17,9 +19,8 @@ DNAme_PE.sh <name> <processer> <sourceDir> <genomeVersion> <reads1,+> <reads2,+>
 bash DNAme_PE.sh test 32 sourceDir mm10 test_r1_1.fastq.gz,test_r2_1.fastq.gz,test_r3_1.fastq.gz,test_r4_1.fastq.gz test_r1_2.fastq.gz,test_r2_2.fastq.gz,test_r3_2.fastq.gz,test_r4_2.fastq.gz
 ```
 
-# Files required in source dir
+## Input & source files
 
-genomeVersion_main.fa (scaffold and small chromsome removed. You can generate this file using [getMainFa.py](https://github.com/wwang-chcn/wwang_bioinfo_tools/blob/master/genome_source_build/getMainFa.py))
-
-# FAQ
+- Raw sequencing data (paired-end) in ```0_raw_data```
+- Genome sequence file ```${genomeVersion}_main.fa``` (fastq format) in ```~/source/bySpecies/${genomeVersion}/```
 
