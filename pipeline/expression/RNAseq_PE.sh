@@ -1,7 +1,7 @@
 #! /bin/bash
 
 function print_help {
-    echo "$0 <name> <processer> <genomeVersion> <R1.fastq.gz,+> <R2.fastq.gz,+> [SNP_info] [strain1] [strain2]"
+    echo "$0 <name> <processer> <genomeVersion> <R1.fastq.gz,+> <R2.fastq.gz,+>"
 }
 function join_by {
     local IFS="$1"; shift; echo "$*"
@@ -106,50 +106,6 @@ function basic_QC {
     cd ..
 }
 
-function SNP {
-   name1=${name}_${SNP_strain1}
-   name2=${name}_${SNP_strain2}
-   if [[ ! -e 1_mapping/${name1}.bam || ! -e 1_mapping/${name2}.bam ]]; then
-        python ${MY_PATH}/bam_split_snp.py ${SNP_info} 1_mapping/${name}.bam 1_mapping/${name1}.bam 1_mapping/${name2}.bam > 1_mapping/${name}_split_snp.log
-   fi
-   if [[ ! -e 3_signal/RNA_seq_${name1}.bw ]]; then
-        cd 1_mapping/ && \
-        samtools sort -@ $((${processer}-1)) -o ${name1}_sorted.bam ${name1}.bam && samtools index -@ $((${processer}-1)) ${name1}_sorted.bam && \
-        cd ../2_expression_value && \
-        stringtie ../1_mapping/${name1}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name1} -A ${name1}_refGene_coverage.txt -o ${name1}_refGene_coverage.gtf -e -B && \
-        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
-            stringtie ../1_mapping/${name1}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name1} -A ${name1}_ensGene_coverage.txt -o ${name1}_ensGene_coverage.gtf -e -B
-        fi && \
-        rm ../1_mapping/${name1}_sorted.bam ../1_mapping/${name1}_sorted.bam.bai && \
-        samtools view ../1_mapping/${name1}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name1}_refGene.read_cnt && \
-        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
-            samtools view ../1_mapping/${name1}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name1}_ensGene.read_cnt
-        fi && \
-        cd ../3_signal && \
-        cat ../1_mapping/${name1}.bam | python ~/bin/myscripts/bamToBed.py | awk '$1 !~ /_/{print}' > RNA_seq_${name1}.bed && \
-        bedToBigWig RNA_seq_${name1} RNA_seq_${name1} RNA_seq_${name1}
-        cd ..
-    fi &
-    if [[ ! -e 3_signal/RNA_seq_${name2}.bw ]]; then
-        cd 1_mapping/ && \
-        samtools sort -@ $((${processer}-1)) -o ${name2}_sorted.bam ${name2}.bam && samtools index -@ $((${processer}-1)) ${name2}_sorted.bam && \
-        cd ../2_expression_value && \
-        stringtie ../1_mapping/${name2}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf -l ${name2} -A ${name2}_refGene_coverage.txt -o ${name2}_refGene_coverage.gtf -e -B && \
-        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
-            stringtie ../1_mapping/${name2}_sorted.bam -p $((${processer}/2)) -G ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf -l ${name2} -A ${name2}_ensGene_coverage.txt -o ${name2}_ensGene_coverage.gtf -e -B
-        fi && \
-        rm ../1_mapping/${name2}_sorted.bam ../1_mapping/${name2}_sorted.bam.bai && \
-        samtools view ../1_mapping/${name2}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.gtf  -tag stdin -o ${name2}_refGene.read_cnt && \
-        if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf ]]; then
-            samtools view ../1_mapping/${name2}.bam | gfold count -ann ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.gtf  -tag stdin -o ${name2}_ensGene.read_cnt
-        fi && \
-        cd ../3_signal && \
-        cat ../1_mapping/${name2}.bam | python ~/bin/myscripts/bamToBed.py | awk '$1 !~ /_/{print}' > RNA_seq_${name2}.bed && \
-        bedToBigWig RNA_seq_${name2}_fragments RNA_seq_${name2} RNA_seq_${name2}
-        cd ..
-    fi &
-    wait
-}
 
 function cleaning_up {
     rm 1_mapping/${name}.bam
@@ -166,10 +122,4 @@ mapping
 expression_value
 signal
 basic_QC
-if [[ $# -eq 8 ]]; then
-    SNP_info=${6}
-    SNP_strain1=${7}
-    SNP_strain2=${8}
-    SNP
-fi
 cleaning_up

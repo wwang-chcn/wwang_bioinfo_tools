@@ -1,7 +1,7 @@
 #! /bin/bash
 
 function print_help {
-    echo "$0 <name> <processer> <genomeVersion> <ChIPsample1> <ChIPsample2> <main_chrom> [SNP_info] [SNP_strain1] [SNP_strain2]"
+    echo "$0 <name> <processer> <genomeVersion> <ChIPsample1> <ChIPsample2> <main_chrom>"
     echo "Use true in 6th parameters for only map to main_chrom"
 }
 
@@ -113,36 +113,6 @@ function piling_up {
     wait
 }
 
-# ----- SNP -----
-function SNP {
-    name1=${name}_${SNP_strain1}
-    name2=${name}_${SNP_strain2}
-    if [[ ! -e 1_mapping/${name1}.bam || 1_mapping/${name2}.bam ]]; then
-        python ${MY_PATH}/bam_split_snp.py ${SNP_info} 1_mapping/${name}.bam 1_mapping/${name1}.bam 1_mapping/${name2}.bam > 1_mapping/${name}_split_snp.log
-    fi
-    cd 2_signal
-    if [[ ! -e ${name1}.bw ]]; then
-        bamToBed -bedpe -i ../1_mapping/${name1}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2n | uniq > ${name1}_fragments.bed && \
-        nucleosomeShiftPairEnd.sh ${name1}_fragments.bed && \
-        n=`wc -l ${name1}_fragments_shift.bed | cut -f 1 -d " "` && \
-        c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name1}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name1}_fragments_shift.bdg && \
-        bdg2bw.sh ${name1}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name1} && \
-        rm ${name1}_fragments_shift.bed ${name1}_fragments_shift.bdg
-    fi &
-    if [[ ! -e ${name2}.bw ]]; then
-        bamToBed -bedpe -i ../1_mapping/${name2}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2n | uniq > ${name2}_fragments.bed && \
-        nucleosomeShiftPairEnd.sh ${name2}_fragments.bed && \
-        n=`wc -l ${name2}_fragments_shift.bed | cut -f 1 -d " "` && \
-        c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name2}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name2}_fragments_shift.bdg && \
-        bdg2bw.sh ${name2}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name2} && \
-        rm ${name2}_fragments_shift.bed ${name2}_fragments_shift.bdg
-    fi &
-    wait
-    cd ..
-}
-
 # ----- clearning_up -----
 function clearning_up {
     rm 1_mapping/${name}.bam
@@ -158,10 +128,4 @@ function clearning_up {
 mapping_filtering
 peak_calling
 piling_up
-if [[ $# -eq 9 ]]; then
-  SNP_info=${7}
-  SNP_strain1=${8}
-  SNP_strain2=${9}
-  SNP
-fi
 clearning_up
