@@ -36,6 +36,7 @@ genomeVersion=${4}
 reads1=${5}
 reads2=${6}
 
+MY_PATH="`dirname \"$0\"`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
 IFS=',' read -r -a readsFiles2 <<< ${reads2}
@@ -48,7 +49,8 @@ zcat ${filteredReads1[@]} | gzip - > 0_raw_data/${name}_1.fastq.gz &
 zcat ${filteredReads2[@]} | gzip - > 0_raw_data/${name}_2.fastq.gz &
 wait
 bsmap -p ${processer} -a 0_raw_data/${name}_1.fastq.gz -b 0_raw_data/${name}_2.fastq.gz -d ${sourceDir}/${genomeVersion}_main.fa -R -n 1 -o 1_mapping/${name}.sam 2>&1 >>/dev/null | tee 1_mapping/Mapping_${name}.log
-mcall -p ${processer} m 1_mapping/${name}.sam --outputDir 2_methylation_value -r ${sourceDir}/${genomeVersion}_main.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log && mv 1_mapping/${name}.sam.G.bed 1_mapping/${name}.sam.HG.bed 1_mapping/${name}.sam_stat.txt 2_methylation_value
+mcall -p ${processer} -m 1_mapping/${name}.sam --outputDir 2_methylation_value -r ${sourceDir}/${genomeVersion}_main.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log && mv 1_mapping/${name}.sam.G.bed 1_mapping/${name}.sam.HG.bed 1_mapping/${name}.sam_stat.txt 2_methylation_value
 rm ${filteredReads1[@]} ${filteredReads2[@]} 0_raw_data/${name}_1.fastq.gz 0_raw_data/${name}_2.fastq.gz
 cd 1_mapping
 samtools view -bS 1_mapping/${name}.sam > 1_mapping/${name}.bam && rm 1_mapping/${name}.sam
+cd ..
