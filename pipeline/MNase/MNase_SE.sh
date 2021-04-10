@@ -33,10 +33,11 @@ processer=${2}
 genomeVersion=${3}
 reads=${4}
 
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a readsFile <<< ${reads}
 
 mkdir -p 1_mapping 2_signal 3_basic_QC
-MY_PATH="`dirname \"$0\"`"
 
 # ----- process -----
 function mapping_filtering {
@@ -54,11 +55,11 @@ function piling_up {
     cd 2_signal
     if [[ ! -e ${name}.bw ]]; then
         bamToBed -i ../1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2g | uniq > ${name}_reads.bed && \
-        nucleosomeShiftSE.sh ${name}_reads.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftSE.sh ${name}_reads.bed && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_reads_shift.bdg && \
-        bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_reads_shift.bed ${name}_reads_shift.bdg
     fi
     cd ..
@@ -69,15 +70,6 @@ function piling_up {
 function clearning_up {
     rm 1_mapping/${name}.bam
     compress_bed 2_signal/${name}_reads.bed ${genomeVersion}
-    #if [[ $# -eq 8 ]]; then
-    #    rm 1_mapping/${name}_${SNP_strain1}.bam 1_mapping/${name}_${SNP_strain2}.bam
-    #    sort -k1,1 -k2,2n 2_signal/${name}_${SNP_strain1}_fragments.bed > tmp.bed
-    #    bedToBigBed -type=bed3+3 tmp.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes 2_signal/${name}_${SNP_strain1}_fragments.bb
-    #    rm tmp.bed 2_signal/${name}_${SNP_strain1}_fragments.bed
-    #    sort -k1,1 -k2,2n 2_signal/${name}_${SNP_strain2}_fragments.bed > tmp.bed
-    #    bedToBigBed -type=bed3+3 tmp.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes 2_signal/${name}_${SNP_strain2}_fragments.bb
-    #    rm tmp.bed 2_signal/${name}_${SNP_strain2}_fragments.bed
-    #fi
 }
 
 

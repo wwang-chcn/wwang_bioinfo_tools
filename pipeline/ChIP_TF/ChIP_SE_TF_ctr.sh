@@ -46,6 +46,8 @@ case $7 in
     * ) print_help; exit 1;;
 esac
 
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a ChIPsampleFiles <<< ${ChIPsample}
 IFS=',' read -r -a  ctrSampleFiles <<< ${ctrSample}
 
@@ -113,19 +115,19 @@ function piling_up {
     cd 2_signal
     fragment_length=`grep "predicted fragment length is" ../3_peak/${name}_MACS.out | cut -f 14 -d " "`
     if [[ ! -e ${name}.bw ]]; then
-        ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \
-        bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_reads_shift.bed ${name}_reads_shift.bdg
     fi &
     if [[ ! -e ${controlName}.bw ]]; then
-        ShiftSingleEnd.sh ${controlName}_reads.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${controlName}_reads.bed ${fragment_length} && \
         n=`wc -l ${controlName}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${controlName}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${controlName}_reads_shift.bdg && \
-        bdg2bw.sh ${controlName}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${controlName}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
         rm ${controlName}_reads_shift.bed ${controlName}_reads_shift.bdg
     fi &
     wait

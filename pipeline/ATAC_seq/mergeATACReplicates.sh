@@ -10,7 +10,7 @@ function bedToBigWig {
     n=`wc -l ${name}_OCR_SE_reads.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
     genomeCoverageBed -bga -scale $c -i ${name}_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_SE_reads.bdg
-    bdg2bw.sh ${name}_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
     rm ${name}_OCR_SE_reads.bdg
 }
 
@@ -29,6 +29,8 @@ if [[ $# -lt 4 ]]; then
     print_help
     exit 1
 fi
+
+MY_PATH="`dirname \"$0\"`"
 
 mkdir -p 3_merged_signal/
 

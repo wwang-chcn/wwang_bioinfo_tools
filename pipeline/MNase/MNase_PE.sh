@@ -42,13 +42,12 @@ genomeVersion=${3}
 reads1=${4}
 reads2=${5}
 
+MY_PATH="`dirname \"$0\"`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
 IFS=',' read -r -a readsFiles2 <<< ${reads2}
 
 mkdir -p 1_mapping 2_signal 3_basic_QC
-MY_PATH="`dirname \"$0\"`"
-SNP_info=`readlink -f ${SNP_info}`
 
 # ----- process -----
 function mapping_filtering {
@@ -65,11 +64,11 @@ function piling_up {
     cd 2_signal
     if [[ ! -e ${name}.bw ]]; then
         bamToBed -bedpe -i ../1_mapping/${name}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2g | uniq > ${name}_fragments.bed && \
-        nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments_shift.bdg && \
-        bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
     fi
     cd ..

@@ -24,7 +24,7 @@ function bedToBigWig {
     n=`cut -f 4 ${1}.bed | sort -S 1% | uniq | wc -l` && \
     c=`bc -l <<< "1000000 / ${n}"` && \
     sort -S 1% -k1,1 -k2,2n ${1}.bed | genomeCoverageBed -bga -scale $c -i - -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${1}.bdg && \
-    /mnt/Storage/home/wangwen/bin/myscripts/bdg2bw.sh ${1}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${2} && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${1}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${2} && \
     rm ${1}.bdg
 }
 function compress_bed {
@@ -50,6 +50,7 @@ genomeVersion=${3}
 reads=${4}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_expression_value 3_signal 4_basic_QC
+
 MY_PATH="`dirname \"$0\"`"
 
 IFS=',' read -r -a readsFiles <<< ${reads}

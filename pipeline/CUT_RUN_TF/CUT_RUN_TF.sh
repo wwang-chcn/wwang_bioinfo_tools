@@ -41,12 +41,13 @@ case $6 in
     * ) print_help; exit 1;;
 esac
 
+
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a ReadsFiles1 <<< ${reads1}
 IFS=',' read -r -a ReadsFiles2 <<< ${reads2}
 
-
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak
-MY_PATH="`dirname \"$0\"`"
 
 
 # ----- mapping & filtering -----
@@ -72,52 +73,44 @@ function mapping_filtering {
         rm ${filteredReads1[@]} ${filteredReads2[@]}
     fi
     if [[ ! -e 2_signal/${name}_fragments.bed  ]]; then
-      bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}'  | sort -S 1% -k1,1 -k2,2n | uniq > 2_signal/${name}_fragments.bed
-      cut -f 1 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_chromosome_distribution.txt
-      awk '{print $3-$2}' 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_fragments_length.txt
+        bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}'  | sort -S 1% -k1,1 -k2,2n | uniq > 2_signal/${name}_fragments.bed
+        cut -f 1 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_chromosome_distribution.txt
+        awk '{print $3-$2}' 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_fragments_length.txt
     fi
 }
 
 
 # ----- pileup -----
 function piling_up {
-  cd 2_signal
-  fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ${name}_fragments_length.txt`
-  if [[ ! -e ${name}.bw ]]; then
-    ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
-    n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
-    c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
-    bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
-    rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
-  fi &
-  wait
-  cd ..
+    cd 2_signal
+    fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ${name}_fragments_length.txt`
+    if [[ ! -e ${name}.bw ]]; then
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
+        n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
+        c=`bc -l <<< "1000000 / $n"` && \
+        genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
+    fi &
+    wait
+    cd ..
 }
-
-
-# ----- macs -----
-function peak_calling {
-  chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-  macs2 callpeak -f BEDPE -t 2_signal/${name}_fragments.bed --outdir 3_peak -n ${name} -g ${chromsize} -q 0.05 2>&1 >>/dev/null | tee 2_peak/MACS_${name}.log
-}
-
 
 # ----- short fragments -----
 function short_fragments {
 
-  cd 2_signal
-  fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ${name}_fragments_length.txt`
-  awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
-  chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-  macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_MACS.out
-  ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length}
-  n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
-  c=`bc -l <<< "1000000 / $n"` && \
-  genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_fragments_shift.bdg && \
-  bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
-  rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
-  cd ..
+    cd 2_signal
+    fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ${name}_fragments_length.txt`
+    awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
+    macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_MACS.out
+    ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length}
+    n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
+    c=`bc -l <<< "1000000 / $n"` && \
+    genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_fragments_shift.bdg && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+    rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
+    cd ..
 }
 
 

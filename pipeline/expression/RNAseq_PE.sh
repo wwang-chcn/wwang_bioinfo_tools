@@ -24,7 +24,7 @@ function bedToBigWig {
     n=`cut -f 4 ${3}.bed | sort -S 1% | uniq | wc -l` && \
     c=`bc -l <<< "1000000 / ${n}"` && \
     sort -S 1% -k1,1 -k2,2n ${1}.bed | genomeCoverageBed -bga -scale $c -i - -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${1}.bdg && \
-    /mnt/Storage/home/wangwen/bin/myscripts/bdg2bw.sh ${1}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${2} && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${1}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${2} && \
     rm ${1}.bdg
 }
 function compress_bed {
@@ -51,6 +51,7 @@ reads1=${4}
 reads2=${5}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_expression_value 3_signal 4_basic_QC
+
 MY_PATH="`dirname \"$0\"`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
@@ -86,7 +87,7 @@ function expression_value {
 function signal {
     if [[ ! -e 3_signal/RNA_seq_${name}.bw ]]; then
         cd 3_signal && \
-        cat ../1_mapping/${name}.bam | python ~/bin/myscripts/bamToBed.py > RNA_seq_${name}.bed && \
+        cat ../1_mapping/${name}.bam | python3 ${MY_PATH}/../utilities/bamToBed.py > RNA_seq_${name}.bed && \
         bedToBigWig RNA_seq_${name} RNA_seq_${name} RNA_seq_${name} && \
         cd ..
     fi

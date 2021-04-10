@@ -97,7 +97,7 @@ function pileup {
     n=`wc -l ${name}_uniq_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
     genomeCoverageBed -bga -scale $c -i ${name}_uniq_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_uniq_SE_reads.bdg && \
-    /mnt/Storage/home/wangwen/bin/myscripts/bdg2bw.sh ${name}_uniq_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_SE_reads && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_SE_reads && \
     rm ${name}_uniq_SE_reads.bdg &
     wait
     # Warning: using gawk. default awk in macOS is not gawk
@@ -113,7 +113,7 @@ function OCR {
     n=`wc -l ${name}_uniq_OCR_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
     genomeCoverageBed -bga -scale $c -i ${name}_uniq_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_uniq_OCR_SE_reads.bdg && \
-    /mnt/Storage/home/wangwen/bin/myscripts/bdg2bw.sh ${name}_uniq_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_OCR_SE_reads && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_OCR_SE_reads && \
     rm ${name}_uniq_OCR_SE_reads.bdg &
     wait
     cd ..
@@ -128,7 +128,7 @@ function nucleosome {
     n=`wc -l ${name}_uniq_nucleosome_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
     genomeCoverageBed -bga -scale $c -i ${name}_uniq_nucleosome_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_uniq_nucleosome_SE_reads.bdg && \
-    /mnt/Storage/home/wangwen/bin/myscripts/bdg2bw.sh ${name}_uniq_nucleosome_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_nucleosome_SE_reads && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_nucleosome_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_nucleosome_SE_reads && \
     rm ${name}_uniq_nucleosome_SE_reads.bdg &
     wait
     cd ..

@@ -47,9 +47,10 @@ case $5 in
     * ) print_help; exit 1;;
 esac
 
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a ChIPsampleFiles <<< ${ChIPsamples}
 
-MY_PATH="`dirname \"$0\"`"
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 
 # ----- mapping & filtering -----
@@ -89,11 +90,11 @@ function piling_up {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
         awk '{print $1"\t"$2"\t"$3"\t.\t"$5"\t"$6}' ${name}_raw_reads.bed | sort -S 1% -k1,1 -k2,2n | uniq | awk '{print $1"\t"$2"\t"$3"\tReads"NR"\t"$5"\t"$6}' > ${name}_reads.bed
-        nucleosomeShiftSE.sh ${name}_reads.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftSE.sh ${name}_reads.bed && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \
-        bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_reads_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_reads_shift.bed ${name}_reads_shift.bdg
         cd ..
     fi &

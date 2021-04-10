@@ -53,6 +53,8 @@ case $9 in
     * ) print_help; exit 1;;
 esac
 
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a ChIPsampleFiles1 <<< ${ChIPsample1}
 IFS=',' read -r -a ChIPsampleFiles2 <<< ${ChIPsample2}
 IFS=',' read -r -a  ctrsampleFiles1 <<< ${ctrsample1}
@@ -124,20 +126,20 @@ function piling_up {
     cd 2_signal
     fragment_length=`grep "fragment size =" ../3_peak/${name}_MACS.log | cut -f 12 -d " "`
     if [[ ! -e ${controlName}.bw ]]; then
-        ShiftPairEnd.sh ${controlName}_fragments.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${controlName}_fragments.bed ${fragment_length} && \
         n=`wc -l ${controlName}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${controlName}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${controlName}_fragments_shift.bdg && \
-        bdg2bw.sh ${controlName}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${controlName}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
         rm ${controlName}_fragments_shift.bed ${controlName}_fragments_shift.bdg
     fi &
 
     if [[ ! -e ${name}.bw ]]; then
-        ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
-        bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
     fi &
     wait

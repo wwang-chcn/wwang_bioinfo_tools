@@ -59,13 +59,14 @@ case $9 in
     * ) print_help; exit 1;;
 esac
 
+MY_PATH="`dirname \"$0\"`"
+
 IFS=',' read -r -a ChIPsampleFiles1 <<< ${ChIPsample1}
 IFS=',' read -r -a ChIPsampleFiles2 <<< ${ChIPsample2}
 IFS=',' read -r -a  ctrsampleFiles1 <<< ${ctrsample1}
 IFS=',' read -r -a  ctrsampleFiles2 <<< ${ctrsample2}
 
 
-MY_PATH="`dirname \"$0\"`"
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 
 # ----- mapping & filtering -----
@@ -134,11 +135,11 @@ function piling_up {
     if [[ ! -e 2_signal/${controlName}.bw ]]; then
         cd 2_signal && \
         cut -f 1-3 ${controlName}_raw_fragments.bed | sort -S 1% -k1,1 -k2,2n | uniq > ${controlName}_fragments.bed
-        nucleosomeShiftPairEnd.sh ${controlName}_fragments.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${controlName}_fragments.bed && \
         n=`wc -l ${controlName}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${controlName}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${controlName}_fragments_shift.bdg && \
-        bdg2bw.sh ${controlName}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${controlName}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${controlName} && \
         rm ${controlName}_fragments_shift.bed ${controlName}_fragments_shift.bdg
         cd ..
     fi &
@@ -146,11 +147,11 @@ function piling_up {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
         cut -f 1-3 ${name}_raw_fragments.bed | sort -S 1% -k1,1 -k2,2n | uniq > ${name}_fragments.bed
-        nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
-        bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
         cd ..
     fi &
