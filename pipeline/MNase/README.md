@@ -2,15 +2,15 @@
 
 ## Softwares
 
-- Python3 ($\geq$ 3.6)
-- Cutadapt ($\geq$ 3.3)
-- FastQC ($\geq$ 0.11.4)
-- TrimGalore ($\geq$ 0.6.4)
-- Bowtie2 ($\geq$ 2.4.2)
-- htslib ($\geq$ 1.6)
-- SAMtools ($\geq$ 1.6)
-- BEDtools ($\geq$ 2.27.1)
-- GNU Awk ($\geq$ 4.1.3)
+- Python3 (≥3.6)
+- Cutadapt (≥3.3)
+- FastQC (≥0.11.4)
+- TrimGalore (≥0.6.4)
+- Bowtie2 (≥2.4.2)
+- htslib (≥1.6)
+- SAMtools (≥1.6)
+- BEDtools (≥2.27.1)
+- GNU Awk (≥4.1.3)
 
 ## Input & source files
 

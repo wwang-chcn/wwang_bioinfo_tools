@@ -2,17 +2,17 @@
 
 ## Softwares
 
-- Python2 (2.7) & Python3 ($\geq$ 3.6)
-- Cutadapt ($\geq$ 3.3)
-- FastQC ($\geq$ 0.11.4)
-- TrimGalore ($\geq$ 0.6.4)
-- Bowtie2 ($\geq$ 2.4.2)
-- htslib ($\geq$ 1.6)
-- SAMtools ($\geq$ 1.6)
-- BEDtools ($\geq$ 2.27.1)
-- GNU Awk ($\geq$ 4.1.3)
-- MACS2 ($\geq$ 2.1.1.20160309)
-- CEAS ($\geq$ 1.0.2) with ceasBW (0.9.9.7)
+- Python2 (2.7) & Python3 (≥3.6)
+- Cutadapt (≥3.3)
+- FastQC (≥0.11.4)
+- TrimGalore (≥0.6.4)
+- Bowtie2 (≥2.4.2)
+- htslib (≥1.6)
+- SAMtools (≥1.6)
+- BEDtools (≥2.27.1)
+- GNU Awk (≥4.1.3)
+- MACS2 (2.1.1.20160309)
+- CEAS (≥1.0.2) with ceasBW (0.9.9.7)
 
 ## Input & source files
 

@@ -1,11 +1,11 @@
 # Dependencies
 
-- [Moabs](https://github.com/sunnyisgalaxy/moabs) (bsmap, mcall, $\geq$ 1.3.9.6)
-- Cutadapt ($\geq$ 3.3)
-- FastQC ($\geq$ 0.11.4)
-- TrimGalore ($\geq$ 0.6.4)
-- htslib ($\geq$ 1.6)
-- SAMtools ($\geq$ 1.6)
+- [Moabs](https://github.com/sunnyisgalaxy/moabs) (bsmap, mcall, ≥1.3.9.6)
+- Cutadapt (≥3.3)
+- FastQC (≥0.11.4)
+- TrimGalore (≥0.6.4)
+- htslib (≥1.6)
+- SAMtools (≥1.6)
 
 # Usage
 

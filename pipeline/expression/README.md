@@ -2,17 +2,17 @@
 
 ## Softwares
 
-- Python2 (2.7) & Python3 ($\geq$ 3.6)
-- Cutadapt ($\geq$ 3.3)
-- FastQC ($\geq$ 0.11.4)
-- TrimGalore ($\geq$ 0.6.4)
-- HISAT2 ($\geq$ 2.1.0)
-- StringTie ($\geq$ 1.3.3b)
-- GFOLD ($\geq$ 1.1.4)
-- htslib ($\geq$ 1.6)
-- SAMtools ($\geq$ 1.6)
-- BEDtools ($\geq$ 2.27.1)
-- RSeQC ($\geq$ 2.6.4)
+- Python2 (2.7) & Python3 (≥3.6)
+- Cutadapt (≥3.3)
+- FastQC (≥0.11.4)
+- TrimGalore (≥0.6.4)
+- HISAT2 (≥2.1.0)
+- StringTie (≥1.3.3b)
+- GFOLD (≥1.1.4)
+- htslib (≥1.6)
+- SAMtools (≥1.6)
+- BEDtools (≥2.27.1)
+- RSeQC (≥2.6.4)
 
 ## Input & source files
 
