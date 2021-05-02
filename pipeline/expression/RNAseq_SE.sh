@@ -94,11 +94,11 @@ function signal {
 function basic_QC {
     cd 4_basic_QC
     read_distribution.py -i ../1_mapping/${name}.bam -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.bed > RNA_seq_${name}_refGene_read_distribution.txt &
-    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
+    if [[ -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
         read_distribution.py -i ../1_mapping/${name}.bam -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed > RNA_seq_${name}_ensGene_read_distribution.txt
     fi &
     geneBody_coverage2.py -i ../3_signal/RNA_seq_${name}.bw -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.bed -o RNA_seq_${name}_refGene &
-    if [[ ! -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
+    if [[ -e ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed ]]; then
         geneBody_coverage2.py -i ../3_signal/RNA_seq_${name}.bw -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.ensGene.bed -o RNA_seq_${name}_ensGene
     fi &
     wait
