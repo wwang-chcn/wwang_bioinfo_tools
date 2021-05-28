@@ -3,7 +3,7 @@
 # Nov-17-2020
 
 function print_help {
-        echo "USAGE: $0 <name> <genomeVersion> <replicate1> <replicate2>+"
+    echo "USAGE: $0 <name> <genomeVersion> <replicate1> <replicate2>+"
 }
 
 function bedToBigWig {
