@@ -41,12 +41,12 @@ shift 2
 # get fragment files
 reads_file_array=()
 for i in $@; do
-    if [[ ! -e 2_signal/${i}_fragments.bed ]]; then
-        if [[ ! -e 2_signal/${i}_fragments.bb ]]; then
+    if [[ ! -e 2_signal/${i}_OCR_fragments.bed ]]; then
+        if [[ ! -e 2_signal/${i}_OCR_fragments.bb ]]; then
             echo "fragments file for sample ${i} do not exist, exit!"
             exit 1
         fi
-        bigBedToBed 2_signal/${i}_fragments.bb 2_signal/${i}_fragments.bed
+        bigBedToBed 2_signal/${i}_OCR_fragments.bb 2_signal/${i}_OCR_fragments.bed
     fi
     fragments_array+=("2_signal/${i}_fragments.bed")
 done
