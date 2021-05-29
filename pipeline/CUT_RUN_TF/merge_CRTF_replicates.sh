@@ -9,9 +9,9 @@ function print_help {
 function bedToBigWig {
     n=`wc -l ${name}_fragments.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
-    genomeCoverageBed -bga -scale $c -i ${name}_merged_fragments.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_merged_fragments.bdg
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_merged_fragments.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
-    rm ${name}_merged_fragments.bdg
+    genomeCoverageBed -bga -scale $c -i ${name}_fragments.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments.bdg
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
+    rm ${name}_fragments.bdg
 }
 
 function compress_bed {
