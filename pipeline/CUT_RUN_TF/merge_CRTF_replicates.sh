@@ -24,7 +24,7 @@ function compress_bed {
     rm ${bedFile} ${bedFile}.tmp
 }
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 3 ]]; then
     echo "No enought parameters!"
     print_help
     exit 1
