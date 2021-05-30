@@ -48,7 +48,7 @@ for i in $@; do
         fi
         bigBedToBed 2_signal/${i}_OCR_fragments.bb 2_signal/${i}_OCR_fragments.bed
     fi
-    fragments_array+=("2_signal/${i}_fragments.bed")
+    fragments_array+=("2_signal/${i}_OCR_fragments.bed")
 done
 
 # merge fragment files
