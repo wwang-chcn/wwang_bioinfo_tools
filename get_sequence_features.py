@@ -29,7 +29,7 @@ def prepare_optparser():
                          help='Bed file for regions to be capture.')
     optparser.add_option('-o','--output',dest='output',type='string',\
                          help='Output file.')
-    return optparse
+    return optparser
 
 
 def opt_validate(optparser):
