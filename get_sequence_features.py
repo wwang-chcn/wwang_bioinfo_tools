@@ -118,7 +118,7 @@ def main():
         	if not line:
         		continue
         	line = line.strip().split()
-        	chrom, start, end, name = line[:3]
+        	chrom, start, end, name = line[:4]
         	start, end = int(start), int(end)
         	start = max(start, 0)
         	sequence = genome[chrom][start:end]
