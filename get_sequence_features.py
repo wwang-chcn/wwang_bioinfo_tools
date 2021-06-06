@@ -125,3 +125,13 @@ def main():
         	GC, CpG_density, CpG_ratio = cal_sequence_feature(sequence)
         	output_csv.writerow([name, f'{GC:.3f}', f'{CpG_density:.3f}', f'{CpG_ratio:.3f}'])
 
+
+# ------------------------------------
+# Program running
+# ------------------------------------
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.stdout.write('User interrupts me! ;-) See you ^.^!\n')
+        sys.exit(0)
