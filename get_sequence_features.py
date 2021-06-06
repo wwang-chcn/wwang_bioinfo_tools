@@ -111,7 +111,7 @@ def main():
     	from pyfasta import Fasta
     	genome = Fasta(os.path.expanduser(options.genome))
     with open(os.path.expanduser(options.bed)) as input_fhd, \
-         open(os.path.expanduser(options.output)) as output_fhd:
+         open(os.path.expanduser(options.output), 'w') as output_fhd:
         output_csv = csv.writer(output_fhd)
         output_csv.writerow(['name','GC content','CpG density', 'CpG ratio'])
         for line in input_fhd:
