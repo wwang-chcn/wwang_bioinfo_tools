@@ -88,6 +88,7 @@ def opt_validate(optparser):
         sys.stdout.write(f'Warning: -w window is set but -s step not set, ignored.\n')
     if options.step and not options.window:
         sys.stdout.write(f'Warning: -s step is set but -w window not set, ignored.\n')
+
     return options
 
 
@@ -120,10 +121,10 @@ def cal_sequence_feature(sequence, options):
 # Main function
 # ------------------------------------
 def main():
-
+    
     # read the options
     options = opt_validate(prepare_optparser())
-
+    
     # load sequence file
     suffix = options.genome.split('.')[-1]
     if suffix == '2bit':
@@ -157,3 +158,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.stdout.write('User interrupts me! ;-) See you ^.^!\n')
         sys.exit(0)
+
