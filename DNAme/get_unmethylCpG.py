@@ -21,7 +21,7 @@ def prepare_optparser():
     '''
     
     program_name = os.path.basename(sys.argv[0])
-    usage = 'usage: %prog <-m meth_file> <-b bed_file> [-o output_name] [-c coverage]'
+    usage = 'usage: %prog <-m meth_file> <-b bed_file> [-o output_name] [-c coverage] [-w window] [-s step]'
     description = 'Get unmethylCpG number.'
     
     # option processor
@@ -35,6 +35,10 @@ def prepare_optparser():
                          help='Names for output file(s).')
     optparser.add_option('-c', '--coverage',dest='coverage',type='int',\
                          help='Coverage threshold for region to be consider.\nDefault is 5.', default=5)
+    optparser.add_option('-w','--window',dest='window',type='int',\
+                         help='Sliding window size. Use the whole region if not set.')
+    optparser.add_option('-s','--step',dest='step',type='int',\
+                         help='Step for sliding window. Required when -w is set. Ignored if -w not set.')
     return optparser
 
 
@@ -45,7 +49,7 @@ def opt_validate(optparser):
     """
     
     (options, args) = optparser.parse_args()
-
+    
     # input methylation info file must be given
     if not options.meth:
         sys.stdout.write('Input methylation info file must be given!\n')
@@ -66,16 +70,22 @@ def opt_validate(optparser):
             sys.stdout.write(f'Input bed file: {bed_file} can not be found!\n')
             optparser.print_help()
             sys.exit(1)
-
+    
+    # step should be set when window is set
+    if options.window and not options.step:
+        sys.stdout.write(f'Warning: -w window is set but -s step not set, ignored.\n')
+    if options.step and not options.window:
+        sys.stdout.write(f'Warning: -s step is set but -w window not set, ignored.\n')
+    
     # output name
     if not options.output:
         meth_name = options.meth.split('.')[0]
-        options.output = [f'{bed_file[:-3]}_{meth_name}_methylation_level.txt' for bed_file in options.bed]
+        options.output = [f'{bed_file[:-3]}_{meth_name}_unmethylCpG.csv' for bed_file in options.bed]
     elif len(options.output) != len(options.bed):
         sys.stdout.write('The number of input bed files and number of output files are not equal!\n')
         optparser.print_help()
         sys.exit(1)
-
+    
     return options
 
 
@@ -93,8 +103,7 @@ def load_meth(meth_file):
     return methylation
 
 
-def get_region_unmethylCpG(region, methylation, coverage):
-    
+def _get_region_unmethylCpG(region, methylation, coverage):
     (chrom, start, end) = region
     um = 0
     for pos in range(start-1,end):
@@ -104,6 +113,21 @@ def get_region_unmethylCpG(region, methylation, coverage):
     return um
 
 
+def get_region_unmethylCpG(region, methylation, coverage, options):
+    '''
+    '''
+    (chrom, start, end) = region
+    if options.window and options.step:
+        region_um = []
+        for i in range((end - start - options.window) // options.step):
+            _start = start + i * options.step
+            _end = _start + options.window
+            region_um.append(_get_region_unmethylCpG((chrom, _start, _end), methylation, coverage))
+        return np.nanmax(region_um) if region_um else np.nan
+    else:
+        return _get_region_unmethylCpG(region, methylation, coverage)
+
+
 @contextmanager
 def smart_write_open(file_name):
     fhd = gzip.open(file_name, 'wt') if file_name.endswith('.gz') else open(file_name, 'w')
@@ -111,7 +135,7 @@ def smart_write_open(file_name):
     fhd.close()
 
 
-def get_file_meth(bed_file, output_file, methylation, coverage):
+def get_file_meth(bed_file, output_file, methylation, coverage, options):
     basename = bed_file.rsplit('.',1)[0]
     with open(bed_file) as intput_fhd, \
          smart_write_open(output_file) as output_fhd:
@@ -127,8 +151,8 @@ def get_file_meth(bed_file, output_file, methylation, coverage):
             start, end = int(start), int(end)
             name = line[3] if len(line) > 3 else f'R{line_n:d}'
             strand = line[5] if len(line) > 5 else '.'
-            value = get_region_unmethylCpG((chrom, start, end), methylation, coverage)
-            output_line = [chrom, start, end, name, value, strand]
+            value = get_region_unmethylCpG((chrom, start, end), methylation, coverage, options)
+            output_line = [chrom, start, end, name, f'{value:.3f}', strand]
             output_csv.writerow(output_line)
  
 
@@ -145,7 +169,7 @@ def main():
 
     # get methylation information for each file
     for bed_file, output_file in zip(options.bed, options.output):
-        get_file_meth(bed_file, output_file, methylation, options.coverage)
+        get_file_meth(bed_file, output_file, methylation, options.coverage, options)
 
 
 # ------------------------------------
