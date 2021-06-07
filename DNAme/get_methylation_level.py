@@ -169,7 +169,7 @@ def main():
     
     # get methylation information for each file
     for bed_file, output_file in zip(options.bed, options.output):
-        get_file_meth(bed_file, output_file, methylation, options.coverage, options)
+        get_file_meth(bed_file, output_file, methylation, options.coverage)
 
 
 # ------------------------------------
