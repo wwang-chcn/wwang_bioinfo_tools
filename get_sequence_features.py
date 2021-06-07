@@ -17,7 +17,7 @@ def prepare_optparser():
     '''
     
     program_name = os.path.basename(sys.argv[0])
-    usage = 'usage: %prog <-g genome_file> <-b bed_file> <-o output_name>'
+    usage = 'usage: %prog <-g genome_file> <-b bed_file> <-o output_name> [-w window] [-s step]'
     description = 'Get sequence feature for given regions.'
     
     # option processor
@@ -29,6 +29,10 @@ def prepare_optparser():
                          help='Bed file for regions to be capture.')
     optparser.add_option('-o','--output',dest='output',type='string',\
                          help='Output file.')
+    optparser.add_option('-w','--window',dest='window',type='int',\
+                         help='Sliding window size. Use the whole region if not set.')
+    optparser.add_option('-s','--step',dest='step',type='int',\
+                         help='Step for sliding window. Required when -w is set. Ignored if -w not set.')
     return optparser
 
 
@@ -39,7 +43,7 @@ def opt_validate(optparser):
     """
     
     (options, args) = optparser.parse_args()
-
+    
     # input methylation info file must be given
     if not options.genome:
         sys.stdout.write('Error: Input genome sequence file must be given!\nExit\n')
@@ -68,7 +72,7 @@ def opt_validate(optparser):
             sys.stdout.write(f'Error: Input bed file: {options.bed} can not be found!\nExit\n')
             optparser.print_help()
             sys.exit(1)
-
+    
     # output bed file must be given
     if not options.output:
         sys.stdout.write('Error: Output file must be given!\nExit\n')
@@ -78,20 +82,38 @@ def opt_validate(optparser):
             sys.stdout.write(f'Warning: Output file: {options.output} alread exist!\n')
             optparser.print_help()
             sys.exit(1)
-
+    
+    # step should be set when window is set
+    if options.window and not options.step:
+        sys.stdout.write(f'Warning: -w window is set but -s step not set, ignored.\n')
+    if options.step and not options.window:
+        sys.stdout.write(f'Warning: -s step is set but -w window not set, ignored.\n')
     return options
 
 
-def cal_sequence_feature(sequence):
-	'''
-	Input: sequence
-	Output: GC content, CpG density, CpG ratio
-	'''
-	n = len(sequence)
-	G = sequence.upper().count('G')
-	C = sequence.upper().count('C')
-	CpG = sequence.upper().count('CG')
-	return 1.0 * (G + C) / n, 1.0 * CpG / n, 1.0 * CpG * n / C / G
+def cal_sequence_feature(sequence, options):
+    '''
+    Input: upper cased sequence
+    Output: GC content, CpG density, CpG ratio
+    '''
+    n = len(sequence)
+    if options.window and options.step:
+        GC, CpG_density, CpG_ratio = [], [], []
+        for i in range((n - options.window) // options.step):
+            sequence_ = sequence[step*i:step*i+window]
+            G = sequence.count('G')
+            C = sequence.count('C')
+            CpG = sequence.count('CG')
+            GC.append(1.0 * (G + C) / n)
+            CpG_density.append(1.0 * CpG / n)
+            CpG_ratio.append(1.0 * CpG * n / C / G)
+        GC, CpG_density, CpG_ratio = max(GC), max(CpG_density), max(CpG_ratio)
+    else:
+        G = sequence.count('G')
+        C = sequence.count('C')
+        CpG = sequence.count('CG')
+        GC, CpG_density, CpG_ratio = 1.0 * (G + C) / n, 1.0 * CpG / n, 1.0 * CpG * n / C / G
+    return GC, CpG_density, CpG_ratio
 
 
 # ------------------------------------
@@ -105,25 +127,25 @@ def main():
     # load sequence file
     suffix = options.genome.split('.')[-1]
     if suffix == '2bit':
-    	from twobitreader import TwoBitFile
-    	genome = TwoBitFile(os.path.expanduser(options.genome))
+        from twobitreader import TwoBitFile
+        genome = TwoBitFile(os.path.expanduser(options.genome))
     else:
-    	from pyfasta import Fasta
-    	genome = Fasta(os.path.expanduser(options.genome))
+        from pyfasta import Fasta
+        genome = Fasta(os.path.expanduser(options.genome))
     with open(os.path.expanduser(options.bed)) as input_fhd, \
          open(os.path.expanduser(options.output), 'w') as output_fhd:
         output_csv = csv.writer(output_fhd)
         output_csv.writerow(['name','GC content','CpG density', 'CpG ratio'])
         for line in input_fhd:
-        	if not line:
-        		continue
-        	line = line.strip().split()
-        	chrom, start, end, name = line[:4]
-        	start, end = int(start), int(end)
-        	start = max(start, 0)
-        	sequence = genome[chrom][start:end]
-        	GC, CpG_density, CpG_ratio = cal_sequence_feature(sequence)
-        	output_csv.writerow([name, f'{GC:.3f}', f'{CpG_density:.3f}', f'{CpG_ratio:.3f}'])
+            if not line:
+                continue
+            line = line.strip().split()
+            chrom, start, end, name = line[:4]
+            start, end = int(start), int(end)
+            start = max(start, 0)
+            sequence = genome[chrom][start:end].upper()
+            GC, CpG_density, CpG_ratio = cal_sequence_feature(sequence, options)
+            output_csv.writerow([name, f'{GC:.3f}', f'{CpG_density:.3f}', f'{CpG_ratio:.3f}'])
 
 
 # ------------------------------------
