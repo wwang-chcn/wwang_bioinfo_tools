@@ -125,7 +125,7 @@ def get_region_meth(region, methylation, coverage, options):
             region_methylation.append(_get_avg_meth_over_region((chrom, _start, _end), methylation, coverage))
         return np.nanmin(region_methylation) if region_methylation else np.nan
     else:
-        return _get_avg_meth_over_region((chrom, start, end), methylation, coverage)
+        return _get_avg_meth_over_region(region, methylation, coverage)
 
 
 @contextmanager
