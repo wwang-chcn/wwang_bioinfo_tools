@@ -119,7 +119,7 @@ def get_region_meth(region, methylation, coverage, options):
     (chrom, start, end) = region
     region_methylation = []
     if options.window and options.step:
-        for i in range((start - end - options.window) // options.step):
+        for i in range((end - start - options.window) // options.step):
             _start = start + i * options.step
             _end = _start + options.window
             region_methylation.append(_get_avg_meth_over_region((chrom, _start, _end), methylation, coverage))
