@@ -105,25 +105,25 @@ def load_meth(meth_file):
 
 def _get_avg_meth_over_region(region, methylation, coverage):
     (chrom, start, end) = region
-    methylation = []
+    window_methylation = []
     for pos in range(start-1,end):
         if (not pos in methylation[chrom]) or methylation[chrom][pos][1] < coverage:
             continue
         window_methylation.append(methylation[chrom][pos][0])
-    return np.nanmean(methylation)
+    return np.nanmean(window_methylation)
 
 
 def get_region_meth(region, methylation, coverage, options):
     '''
     '''
     (chrom, start, end) = region
-    methylation = []
+    region_methylation = []
     if options.window and options.step:
         for i in range((start - end - options.window) // options.step):
             _start = start + i * options.step
             _end = _start + options.window
-            methylation.append(_get_avg_meth_over_region((chrom, _start, _end), methylation, coverage))
-        return np.nanmin(methylation) if methylation else np.nan
+            region_methylation.append(_get_avg_meth_over_region((chrom, _start, _end), methylation, coverage))
+        return np.nanmin(region_methylation) if region_methylation else np.nan
     else:
         return _get_avg_meth_over_region((chrom, start, end), methylation, coverage)
 
