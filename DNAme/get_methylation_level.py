@@ -135,7 +135,7 @@ def smart_write_open(file_name):
     fhd.close()
 
 
-def get_file_meth(bed_file, output_file, methylation, coverage):
+def get_file_meth(bed_file, output_file, methylation, coverage, options):
     basename = bed_file.rsplit('.',1)[0]
     with open(bed_file) as intput_fhd, \
          smart_write_open(output_file) as output_fhd:
@@ -169,7 +169,7 @@ def main():
     
     # get methylation information for each file
     for bed_file, output_file in zip(options.bed, options.output):
-        get_file_meth(bed_file, output_file, methylation, options.coverage)
+        get_file_meth(bed_file, output_file, methylation, options.coverage, options)
 
 
 # ------------------------------------
