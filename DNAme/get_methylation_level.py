@@ -21,7 +21,7 @@ def prepare_optparser():
     '''
     
     program_name = os.path.basename(sys.argv[0])
-    usage = 'usage: %prog <-m meth_file> <-b bed_file> [-o output_name] [-c coverage]'
+    usage = 'usage: %prog <-m meth_file> <-b bed_file> [-o output_name] [-c coverage] [-w window] [-s step]'
     description = 'Get DNA methylation level (CpG) over regions.'
     
     # option processor
@@ -35,6 +35,10 @@ def prepare_optparser():
                          help='Names for output file(s).')
     optparser.add_option('-c', '--coverage',dest='coverage',type='int',\
                          help='Coverage threshold for region to be consider.\nDefault is 5.', default=5)
+    optparser.add_option('-w','--window',dest='window',type='int',\
+                         help='Sliding window size. Use the whole region if not set.')
+    optparser.add_option('-s','--step',dest='step',type='int',\
+                         help='Step for sliding window. Required when -w is set. Ignored if -w not set.')
     return optparser
 
 
@@ -45,7 +49,7 @@ def opt_validate(optparser):
     """
     
     (options, args) = optparser.parse_args()
-
+    
     # input methylation info file must be given
     if not options.meth:
         sys.stdout.write('Input methylation info file must be given!\n')
@@ -66,7 +70,13 @@ def opt_validate(optparser):
             sys.stdout.write(f'Input bed file: {bed_file} can not be found!\n')
             optparser.print_help()
             sys.exit(1)
-
+    
+    # step should be set when window is set
+    if options.window and not options.step:
+        sys.stdout.write(f'Warning: -w window is set but -s step not set, ignored.\n')
+    if options.step and not options.window:
+        sys.stdout.write(f'Warning: -s step is set but -w window not set, ignored.\n')
+    
     # output name
     if not options.output:
         meth_name = options.meth.split('.')[0]
@@ -75,7 +85,7 @@ def opt_validate(optparser):
         sys.stdout.write('The number of input bed files and number of output files are not equal!\n')
         optparser.print_help()
         sys.exit(1)
-
+    
     return options
 
 
@@ -93,16 +103,29 @@ def load_meth(meth_file):
     return methylation
 
 
-def get_region_meth(region, methylation, coverage):
-    
+def _get_avg_meth_over_region(region, methylation, coverage):
     (chrom, start, end) = region
-    m, total, n = 0, 0, 0
+    methylation = []
     for pos in range(start-1,end):
-        if pos in methylation[chrom]:
-            n += 1
-            m += methylation[chrom][pos][2]
-            total += methylation[chrom][pos][1]
-    return np.nan if n == 0 or total / n < coverage else m / total
+        if (not pos in methylation[chrom]) or methylation[chrom][pos][1] < coverage:
+            continue
+        window_methylation.append(methylation[chrom][pos][0])
+    return np.nanmean(methylation)
+
+
+def get_region_meth(region, methylation, coverage, options):
+    '''
+    '''
+    (chrom, start, end) = region
+    methylation = []
+    if options.window and options.step:
+        for i in range((start - end - options.window) // options.step):
+            _start = start + i * options.step
+            _end = _start + options.window
+            methylation.append(_get_avg_meth_over_region((chrom, _start, _end), methylation, coverage))
+        return np.nanmin(methylation)
+    else:
+        return _get_avg_meth_over_region((chrom, start, end), methylation, coverage)
 
 
 @contextmanager
@@ -128,7 +151,7 @@ def get_file_meth(bed_file, output_file, methylation, coverage):
             start, end = int(start), int(end)
             name = line[3] if len(line) > 3 else f'R{line_n:d}'
             strand = line[5] if len(line) > 5 else '.'
-            value = get_region_meth((chrom, start, end), methylation, coverage)
+            value = get_region_meth((chrom, start, end), methylation, coverage, options)
             output_line = [chrom, start, end, name, value, strand]
             output_csv.writerow(output_line)
  
@@ -137,16 +160,16 @@ def get_file_meth(bed_file, output_file, methylation, coverage):
 # Main function
 # ------------------------------------
 def main():
-
+    
     # read the options
     options = opt_validate(prepare_optparser())
-
+    
     # load methylation information
     methylation = load_meth(options.meth)
-
+    
     # get methylation information for each file
     for bed_file, output_file in zip(options.bed, options.output):
-        get_file_meth(bed_file, output_file, methylation, options.coverage)
+        get_file_meth(bed_file, output_file, methylation, options.coverage, options)
 
 
 # ------------------------------------
