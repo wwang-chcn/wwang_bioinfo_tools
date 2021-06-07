@@ -152,7 +152,7 @@ def get_file_meth(bed_file, output_file, methylation, coverage, options):
             name = line[3] if len(line) > 3 else f'R{line_n:d}'
             strand = line[5] if len(line) > 5 else '.'
             value = get_region_meth((chrom, start, end), methylation, coverage, options)
-            output_line = [chrom, start, end, name, value, strand]
+            output_line = [chrom, start, end, name, f'{value:.3f}', strand]
             output_csv.writerow(output_line)
  
 
