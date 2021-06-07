@@ -108,7 +108,7 @@ def _get_region_unmethylCpG(region, methylation, coverage):
     um = 0
     for pos in range(start-1,end):
         if pos in methylation[chrom]:
-            if methylation[chrom][pos][1] >=5 and methylation[chrom][pos][2] <= 0.2:
+            if methylation[chrom][pos][1] >=5 and methylation[chrom][pos][0] <= 0.2:
                 um += 1
     return um
 
