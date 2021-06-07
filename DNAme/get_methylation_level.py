@@ -22,7 +22,7 @@ def prepare_optparser():
     
     program_name = os.path.basename(sys.argv[0])
     usage = 'usage: %prog <-m meth_file> <-b bed_file> [-o output_name] [-c coverage]'
-    description = 'get_methylation_level.'
+    description = 'Get DNA methylation level (CpG) over regions.'
     
     # option processor
     optparser = OptionParser(version='%prog 0.1', description=description, usage=usage, add_help_option=False)
@@ -70,7 +70,7 @@ def opt_validate(optparser):
     # output name
     if not options.output:
         meth_name = options.meth.split('.')[0]
-        options.output = [f'{bed_file[:-3]}_{meth_name}_methylation_level.txt' for bed_file in options.bed]
+        options.output = [f'{bed_file[:-3]}_{meth_name}_methylation_level.csv' for bed_file in options.bed]
     elif len(options.output) != len(options.bed):
         sys.stdout.write('The number of input bed files and number of output files are not equal!\n')
         optparser.print_help()
