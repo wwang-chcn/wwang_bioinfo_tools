@@ -100,7 +100,7 @@ def cal_sequence_feature(sequence, options):
     if options.window and options.step:
         GC, CpG_density, CpG_ratio = [], [], []
         for i in range((n - options.window) // options.step):
-            sequence_ = sequence[step*i:step*i+window]
+            sequence_ = sequence[options.step*i:options.step*i+options.window]
             G = sequence.count('G')
             C = sequence.count('C')
             CpG = sequence.count('CG')
