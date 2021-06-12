@@ -32,7 +32,7 @@ fi
 
 MY_PATH="`dirname \"$0\"`"
 
-mkdir -p 4_merged_sample/
+mkdir -p 5_merged_sample/
 
 name=${1}
 genomeVersion=${2}
@@ -52,8 +52,8 @@ for i in $@; do
 done
 
 # merge fragment files
-cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_fragments.bed
-cd 4_merged_sample/
+cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 5_merged_sample/${name}_fragments.bed
+cd 5_merged_sample/
 bedToBigWig
 compress_bed ${name}_fragments.bed ${genomeVersion}
 cd ..
