@@ -150,9 +150,9 @@ def main():
             i += 1
 
     # output
-    np.savetxt(f'{os.path.expanduser(options.bed)}_GC_content.csv', GC_matrix, delimiter=',', fmt='%.3f')
-    np.savetxt(f'{os.path.expanduser(options.bed)}_CpG_density.csv', CpG_density_matrix, delimiter=',', fmt='%.3f')
-    np.savetxt(f'{os.path.expanduser(options.bed)}_CpG_ratio.csv', CpG_ratio_matrix, delimiter=',', fmt='%.3f')
+    np.savetxt(f'{os.path.expanduser(options.output)}_GC_content.csv', GC_matrix, delimiter=',', fmt='%.3f')
+    np.savetxt(f'{os.path.expanduser(options.output)}_CpG_density.csv', CpG_density_matrix, delimiter=',', fmt='%.3f')
+    np.savetxt(f'{os.path.expanduser(options.output)}_CpG_ratio.csv', CpG_ratio_matrix, delimiter=',', fmt='%.3f')
 
 # ------------------------------------
 # Program running
