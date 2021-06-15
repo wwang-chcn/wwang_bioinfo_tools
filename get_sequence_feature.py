@@ -44,7 +44,7 @@ def opt_validate(optparser):
     
     (options, args) = optparser.parse_args()
     
-    # input methylation info file must be given
+    # input genome sequence file must be given
     if not options.genome:
         sys.stdout.write('Error: Input genome sequence file must be given!\nExit\n')
         optparser.print_help()
@@ -73,7 +73,7 @@ def opt_validate(optparser):
             optparser.print_help()
             sys.exit(1)
     
-    # output bed file must be given
+    # output file must be given
     if not options.output:
         sys.stdout.write('Error: Output file must be given!\nExit\n')
         optparser.print_help()
