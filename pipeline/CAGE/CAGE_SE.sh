@@ -62,7 +62,7 @@ function mapping {
 function signal {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
-        bamToBed -i ../1_mapping/${name}.bam | awk '{print $1"\t"$2"\t"$2+1"\t"$4"\t"$5"\t"$6}' > ${name}.bed && \
+        bamToBed -i ../1_mapping/${name}.bam | awk '{if($6=="+") print $1"\t"$2"\t"$2+1"\t"$4"\t"$5"\t"$6; else print $1"\t"$3-1"\t"$3"\t"$4"\t"$5"\t"$6}' > ${name}.bed && \
         sort -S 1% -k1,1 -k2,2n ${name}.bed | genomeCoverageBed -bga -i - -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}.bdg && \
         ${MY_PATH}/../utilities/bdg2bw.sh ${name}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}.bdg
