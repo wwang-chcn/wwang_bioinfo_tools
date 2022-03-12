@@ -163,7 +163,7 @@ def opt_validate(optparser):
                 f'Can not find the bigwig file: {options.bigWigFiles[i]}.\n')
             optparser.print_help()
             sys.exit(1)
-       options.bigWigFiles[i] = os.path.expanduser(options.bigWigFiles[i]) 
+        options.bigWigFiles[i] = os.path.expanduser(options.bigWigFiles[i])
     
     if not os.path.isfile(options.bedFile):
         sys.stdout.write(f'Can not find the bigwig file: {options.bedFile}.\n')
