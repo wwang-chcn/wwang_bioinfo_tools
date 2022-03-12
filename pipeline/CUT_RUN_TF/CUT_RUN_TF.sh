@@ -88,7 +88,7 @@ function piling_up {
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
-        genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
+        genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_fragments_shift.bdg && \
         ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
     fi &
@@ -107,7 +107,7 @@ function short_fragments {
     ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length}
     n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_fragments_shift.bdg && \
+    genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_OCR_fragments_shift.bdg && \
     ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
     rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
     cd ..

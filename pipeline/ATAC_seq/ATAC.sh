@@ -96,7 +96,7 @@ function pileup {
     awk 'BEGIN{srand(1007)} {if(rand()<0.5) print $1"\t"$2"\t"$2+50; else if($3-50<0) print $1"\t0\t"$3; else print $1"\t"$3-50"\t"$3}' ${name}_fragments.bed | awk '{if($2<0) print $1"\t0\t"$3; else print $0}' | sort -k1,1 -k2,2g -S 1% > ${name}_uniq_SE_reads.bed && \
     n=`wc -l ${name}_uniq_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_uniq_SE_reads.bdg && \
+    genomeCoverageBed -bga -scale $c -i ${name}_uniq_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_SE_reads.bdg && \
     ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_SE_reads && \
     rm ${name}_uniq_SE_reads.bdg &
     wait
@@ -112,7 +112,7 @@ function OCR {
     cd OCR && \
     n=`wc -l ${name}_uniq_OCR_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_uniq_OCR_SE_reads.bdg && \
+    genomeCoverageBed -bga -scale $c -i ${name}_uniq_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_OCR_SE_reads.bdg && \
     ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_OCR_SE_reads && \
     rm ${name}_uniq_OCR_SE_reads.bdg &
     wait
@@ -127,7 +127,7 @@ function nucleosome {
     cd nucleosome && \
     n=`wc -l ${name}_uniq_nucleosome_SE_reads.bed | cut -f 1 -d " "` && \
     c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_nucleosome_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_uniq_nucleosome_SE_reads.bdg && \
+    genomeCoverageBed -bga -scale $c -i ${name}_uniq_nucleosome_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_nucleosome_SE_reads.bdg && \
     ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_nucleosome_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_nucleosome_SE_reads && \
     rm ${name}_uniq_nucleosome_SE_reads.bdg &
     wait
