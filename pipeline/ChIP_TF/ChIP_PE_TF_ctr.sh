@@ -50,6 +50,7 @@ fi
 
 case $9 in
     true ) main_chrom=true;;
+    false ) main_chrom=false;;
     * ) print_help; exit 1;;
 esac
 
