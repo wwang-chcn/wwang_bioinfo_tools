@@ -4,6 +4,12 @@ import os
 import subprocess
 from random import choice
 from collections import defaultdict
+import matplotlib as mpl
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['font.sans-serif'] = 'Helvetica'
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # load blast_db
 blast_db_dir = '~/source/blast_db/'
