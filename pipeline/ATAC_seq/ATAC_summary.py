@@ -141,7 +141,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        warn("User interrupts me! ;-) See you ^.^!")
+        sys.stdout.write("User interrupts me! ;-) See you ^.^!")
         sys.exit(0)
 
 
