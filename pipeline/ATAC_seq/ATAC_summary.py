@@ -103,7 +103,7 @@ def main():
         for name, genomeVersion, reads1_files, reads2_files in load_sample(
                 'runned.sh'):
             sys.stdout.write(
-                f'name: {name}\n\tgenome version: {genomeVersion}\n\treads1 files: {reads1_files}\n\tread2 files: {reads2_files}\n'
+                f'name: {name}\n\tgenome version: {genomeVersion}\n\treads1 files: {reads1_files}\n\treads2 files: {reads2_files}\n'
             )  # for debugging
             if not source_files_check(name, genomeVersion, reads1_files,
                                       reads2_files):
