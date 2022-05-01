@@ -44,7 +44,7 @@ def source_files_check(name, genomeVersion, reads1_files, reads2_files):
     # read_file_check
     reads1_files = reads1_files.split(',')
     reads2_files = reads2_files.split(',')
-    if not len(reads1_files) == len(reads2_files):
+    if len(reads1_files) != len(reads2_files):
         os.sys.stdout.write(
             f'Error! Number of input reads file1 and reads file2 do not match!\n'
         )
@@ -87,8 +87,8 @@ def main():
 
     outputPrefix = sys.argv[1]
 
-    with open('ATAC_summary_{}_mapping_info.csv'.format(outputPrefix),'w') as mappingFhd, \
-         open('ATAC_summary_{}_fragments_length.csv'.format(outputPrefix), 'w') as flFhd:
+    with open(f'ATAC_summary_{outputPrefix}_mapping_info.csv','w') as mappingFhd, \
+         open(f'ATAC_summary_{outputPrefix}_fragments_length.csv', 'w') as flFhd:
         mapping_csv = csv.writer(mappingFhd)
         fl_rows = []
         # header
@@ -113,12 +113,11 @@ def main():
 
             # mapping & chrosome M information
             total, mapped, chrM = 0, 0, 0
-            with open('./1_mapping/{}_mapping.log'.format(sample), 'r') as fhd:
+            with open(f'./1_mapping/{sample}_mapping.log', 'r') as fhd:
                 line = next(fhd)
                 total = int(line.strip().split()[0])
-            with open(
-                    './2_signal/{}_chromosome_distribution.txt'.format(sample),
-                    'r') as cd:
+            with open(f'./2_signal/{sample}_chromosome_distribution.txt',
+                      'r') as cd:
                 cd.readline()
                 for line in cd:
                     line = line.strip().split()
