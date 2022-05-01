@@ -74,10 +74,20 @@ def check_target_regions_file(genome_version,
                     output_fhd.write(
                         f'{chrom}\t{i*5000}\t{i*5000+5000}\tbin_{index}\n')
     if not os.path.isfile(tss_3000_file):
-        refgene_bed_file = f'{source_dir}/bySpecies/{genome_version}/{genome_version}.refGene_tss.bed'
-        cmd = f'''awk $1 !~ /_/'{{print $1"\t"$2-3000"\t"$2+3000"\t"$4"\t"$5"\t"$6}}' {refgene_bed_file} | awk '{{if($2<0) print $1"\t0\t"$3"\t"$4"\t"$5"\t"$6; else print $0}}' > {tss_3000_file} '''
-        subprocess.call(cmd, shell=True)
-
+        def promoter_gen(fhd,promoter_range=3000):
+            for index, line in enumerate(fhd):
+                line = line.strip().split()
+                name, chrom, strand, TSS, TTS = line[:5]
+                if '_' in chrom or 'NR' in name:
+                    continue
+                TSS = int(TSS) if strand == '+' else int(TTS)
+                new_line = [chrom, f'{max(TSS-promoter_range, 0):d}', f'{TSS+promoter_range:d}', f'{name}_{index+1}', '0', strand]
+                yield '\t'.join(new_line) + '\n'
+        refgene_file = f'{source_dir}/bySpecies/{genome_version}/{genome_version}.refGene.genePredExt'
+        with open(refgene_file) as input_fhd, \
+             open(tss_3000_file, 'w') as output_fhd:
+            for line in promoter_gen(input_fhd):
+                output_fhd.write(line)
 
 def get_bigwig_mean(bigwig_file):
     """
@@ -105,15 +115,22 @@ def get_bigwig_files(samples):
     return bigwig_files
 
 
-def avg_bed_signale_capture(name, target_regions_file, bigwig_files, labels):
+def avg_bed_signale_capture(name, target_regions_file, bigwig_files, labels, parallel_num=8):
     """
     perform bigWigAverageOverBed for given target_regions_file and bigwi_files
     """
     cmd = f'cut -f 1-4 {target_regions_file} > captures_regions.bed'
     subprocess.call(cmd, shell=True)
-    for label, bigwig_file in zip(labels, bigwig_files):
-        bw_scan_cmd = f'bigWigAverageOverBed {bigwig_file} captures_regions.bed {name}_{label}_signal.tsv'
-        print(subprocess.check_output(bw_scan_cmd.split()).decode(), end='')
+    cmd = ''
+    for index, (label, bigwig_file) in enumerate(zip(labels, bigwig_files)):
+        bw_scan_cmd = f'bigWigAverageOverBed {bigwig_file} captures_regions.bed {label}_signal.tsv &\n'
+        cmd += bw_scan_cmd
+        if (index + 1) % 8 == 0:
+            cmd += 'wait\n'
+    cmd += 'wait\n'
+    with open('tmp.sh', 'w') as fhd:
+        fhd.write(cmd)
+    subprocess.call('bash tmp.sh'.split())
 
 
 def process_signal(name, target_regions_file, bigwig_files, labels):
@@ -125,25 +142,24 @@ def process_signal(name, target_regions_file, bigwig_files, labels):
     for label, bigwig_file in zip(labels, bigwig_files):
         avg = get_bigwig_mean(bigwig_file)
         capture_signal[label] = pd.read_csv(
-            f'{name}_{label}_signal.tsv',
+            f'{label}_signal.tsv',
             sep='\t',
             header=None,
             index_col=0,
             names=['size', 'covered', 'sum', 'mean0', 'mean'])['mean0'] / avg
     corr = capture_signal.corr()
-    if corr.shape[0] < 3:
-        print(f'Correlation is:\n{corr}')
-    else:
-        corr_3 = {}
-        mean_corr = lambda x: (x.values.sum() - 3) / 3
-        for replicates_3 in combinations(corr.index, 3):
-            sub_corr = corr.loc[replicates_3, replicates_3]
-        corr_3 = sorted([[key, value] for key, value in corr_3.items()],
-                        key=lambda x: x[1],
-                        reverse=True)
-        replicates, corr_value = corr_3[0]
-        print(f'Replicates with highest correlation are: {replicates}')
-        print(f'The mean correlation is: {corr_value}')
+    print(f'Correlation is:\n{corr}')
+    corr_3 = {}
+    mean_corr = lambda x: (x.values.sum() - 3) / 6
+    for replicates_3 in combinations(corr.index, 3):
+        sub_corr = corr.loc[replicates_3, replicates_3]
+        corr_3[replicates_3] = mean_corr(sub_corr)
+    corr_3 = sorted([[key, value] for key, value in corr_3.items()],
+                    key=lambda x: x[1],
+                    reverse=True)
+    replicates, corr_value = corr_3[0]
+    print(f'Replicates with highest correlation are: {replicates}')
+    print(f'The mean correlation is: {corr_value}')
 
 
 def main():
@@ -176,7 +192,8 @@ def main():
         process_signal(condition, genome_bin_file, bigwig_files, samples)
         avg_bed_signale_capture(condition, tss_3000_file, bigwig_files,
                                 samples)
-        process_signal(condition, tss_3000_file, bigwig_files, samples) 
+        process_signal(condition, tss_3000_file, bigwig_files, samples)
+    os.chdir('../')
 
 
 # ------------------------------------
