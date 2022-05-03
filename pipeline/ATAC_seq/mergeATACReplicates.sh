@@ -60,6 +60,12 @@ if [[ $# -lt 3 ]]; then
     exit 1
 fi
 
+if [[ $# -gt 4 ]]; then
+    echo "Too many parameters!"
+    print_help
+    exit 1
+fi
+
 MY_PATH="`dirname \"$0\"`"
 
 mkdir -p 3_merged_signal/
