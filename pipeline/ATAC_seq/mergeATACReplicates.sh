@@ -3,7 +3,11 @@
 # Nov-17-2020
 
 function print_help {
-    echo "USAGE: $0 <name> <genomeVersion> <replicate1> <replicate2>+"
+    echo "USAGE: $0 <name> <genomeVersion> <replicates,+> [downSampling]"
+    echo "name: the sample name"
+    echo "genomeVersion: the genome version processed for these samples"
+    echo "replicates: comma separated list of replicates"
+    echo "downSampling: target sampling fragments for each sample. optional"
 }
 
 function bedToBigWig {
@@ -24,7 +28,7 @@ function compress_bed {
     rm ${bedFile} ${bedFile}.tmp
 }
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 3 ]]; then
     echo "No enought parameters!"
     print_help
     exit 1
@@ -36,9 +40,8 @@ mkdir -p 3_merged_signal/
 
 name=${1}
 genomeVersion=${2}
-shift 2
-reads_file_array=()
-for i in $@; do
+IFS=',' read -r -a reads_file_array <<< ${3}
+for i in ${reads_file_array[@]}; do
     if [[ ! -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed ]]; then
         if [[ ! -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
             echo "reads for sample ${i} do not exist, exit!"
@@ -48,11 +51,22 @@ for i in $@; do
     fi
     fragments_array+=("2_signal/OCR/${i}_uniq_OCR_SE_reads.bed")
 done
-cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 3_merged_signal/${name}_OCR_SE_reads.bed
+
+cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 3_merged_signal/${name}_OCR_SE_reads.bed.tmp
+
 cd 3_merged_signal/
+if [[ $# -lt 4 ]]; then
+    mv ${name}_OCR_SE_reads.bed.tmp ${name}_OCR_SE_reads.bed
+else
+    n=`wc -l ${name}_OCR_SE_reads.bed.tmp | cut -f 1 -d " "`
+    ratio=`bc -l <<< "${4} / ${n}"`
+    awk -v ratio=${ratio} 'BEGIN{srand(1006)} {if(rand()<ratio) print}' ${name}_OCR_SE_reads.bed.tmp > ${name}_OCR_SE_reads.bed
+    rm ${name}_OCR_SE_reads.bed.tmp
+fi
 bedToBigWig
 compress_bed ${name}_OCR_SE_reads.bed ${genomeVersion}
 cd ..
+
 for i in $@; do
     if [[ -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
         rm 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
