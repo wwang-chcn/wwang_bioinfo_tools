@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Nov-17-2020
+# ----- functions -----
 
 function print_help {
     echo "USAGE: $0 <name> <genomeVersion> <replicates,+> [downSampling]"
@@ -11,6 +11,8 @@ function print_help {
 }
 
 function bedToBigWig {
+    name=${1}
+    genomeVersion=${2}
     n=`wc -l ${name}_OCR_SE_reads.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
     genomeCoverageBed -bga -scale $c -i ${name}_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_SE_reads.bdg
@@ -26,6 +28,30 @@ function compress_bed {
     intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp
     bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
     rm ${bedFile} ${bedFile}.tmp
+}
+
+function peak_calling {
+    name=${1}
+    genomeVersion=${2}
+    mkdir -p ../4_peaks
+    cd 4_peaks
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
+    if [[ ! -e ../3_merged_signal/${name}_OCR_SE_reads.bed ]]; then
+        bigBedToBed ../3_merged_signal/${name}_OCR_SE_reads.bb ../3_merged_signal/${name}_OCR_SE_reads.bed
+    fi
+    macs14 -t ../3_merged_signal/${name}_OCR_SE_reads.bed -n ${name} -f BED -g 1.4e9 --keep-dup all --nomodel --shiftsize 25 2>&1 >>/dev/null | tee MACS_${name}.out
+    cd ..
+}
+
+function clearning_up {
+    for i in $@; do
+        if [[ -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
+            rm 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
+        fi
+    done
+    if [[ -e ../3_merged_signal/${name}_OCR_SE_reads.bed ]]; then
+        rm ../3_merged_signal/${name}_OCR_SE_reads.bed
+    fi
 }
 
 if [[ $# -lt 3 ]]; then
@@ -63,12 +89,9 @@ else
     awk -v ratio=${ratio} 'BEGIN{srand(1006)} {if(rand()<ratio) print}' ${name}_OCR_SE_reads.bed.tmp > ${name}_OCR_SE_reads.bed
     rm ${name}_OCR_SE_reads.bed.tmp
 fi
-bedToBigWig
+bedToBigWig ${name} ${genomeVersion}
 compress_bed ${name}_OCR_SE_reads.bed ${genomeVersion}
 cd ..
 
-for i in $@; do
-    if [[ -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
-        rm 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
-    fi
-done
+peak_calling ${name}
+clearning_up
