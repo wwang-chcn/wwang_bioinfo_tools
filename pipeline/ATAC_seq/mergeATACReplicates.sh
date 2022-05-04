@@ -99,5 +99,5 @@ bedToBigWig ${name} ${genomeVersion}
 compress_bed ${name}_OCR_SE_reads.bed ${genomeVersion}
 cd ..
 
-peak_calling ${name}
+peak_calling ${name} ${genomeVersion}
 clearning_up
