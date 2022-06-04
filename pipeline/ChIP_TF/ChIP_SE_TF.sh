@@ -73,7 +73,7 @@ function mapping_filtering {
             fi
             rm ${filteredReads[@]} 
         fi
-        bamToBed -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' > 2_signal/${name}_reads.bed
+        bamToBed -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print} $1 ~ /NC/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2g | uniq > 2_signal/${name}_reads.bed
     fi
 }
 

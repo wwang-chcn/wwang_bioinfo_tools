@@ -91,7 +91,7 @@ function mapping_filtering {
             fi
             rm ${filteredReads1[@]} ${filteredReads2[@]}
         fi
-        bamToBed -bedpe -i 1_mapping/${controlName}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' | uniq > 2_signal/${controlName}_raw_fragments.bed
+        bamToBed -bedpe -i 1_mapping/${controlName}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' > 2_signal/${controlName}_raw_fragments.bed
     fi
 
     if [[ ! -e 2_signal/${name}_fragments.bed && ! -e 2_signal/${name}_raw_fragments.bb ]]; then
