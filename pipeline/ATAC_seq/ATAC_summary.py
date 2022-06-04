@@ -46,7 +46,7 @@ def source_files_check(name, genomeVersion, reads1_files, reads2_files):
     reads2_files = reads2_files.split(',')
     if len(reads1_files) != len(reads2_files):
         os.sys.stdout.write(
-            f'Error! Number of input reads file1 and reads file2 do not match!\n'
+            'Error! Number of input reads file1 and reads file2 do not match!\n'
         )
         flag = False
     for i in range(len(reads1_files)):
@@ -87,7 +87,7 @@ def main():
 
     outputPrefix = sys.argv[1]
 
-    with open(f'ATAC_summary_{outputPrefix}_mapping_info.csv','w') as mappingFhd, \
+    with open(f'ATAC_summary_{outputPrefix}_mapping_info.csv', 'w') as mappingFhd, \
          open(f'ATAC_summary_{outputPrefix}_fragments_length.csv', 'w') as flFhd:
         mapping_csv = csv.writer(mappingFhd)
         fl_rows = []
