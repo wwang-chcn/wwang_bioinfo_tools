@@ -1,5 +1,5 @@
 Wen Wang's personal scripts collections
-Email: wwang.tongji{at}gamil.com | 1510781{at}tongji.edu.cn
+Email: wwang.bio{at}gamil.com | 1510781{at}tongji.edu.cn
 
 # Citation
 - For ATAC-seq, ChIP-TF, DNAme, CAGE-seq, MNase-seq, RNA-seq pipelines and DNAme tools please cite:
