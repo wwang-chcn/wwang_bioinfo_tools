@@ -90,7 +90,7 @@ function piling_up {
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal && \
         awk '{print $1"\t"$2"\t"$3"\t.\t"$5"\t"$6}' ${name}_raw_reads.bed | sort -S 1% -k1,1 -k2,2n | uniq | awk '{print $1"\t"$2"\t"$3"\tReads"NR"\t"$5"\t"$6}' > ${name}_reads.bed
-        ${MY_PATH}/../utilities/nucleosomeShiftSE.sh ${name}_reads.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftSingleEnd.sh ${name}_reads.bed && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \

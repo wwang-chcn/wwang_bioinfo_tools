@@ -55,7 +55,7 @@ function piling_up {
     cd 2_signal
     if [[ ! -e ${name}.bw ]]; then
         bamToBed -i ../1_mapping/${name}.bam | awk '$1 !~ /_/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2g | uniq > ${name}_reads.bed && \
-        ${MY_PATH}/../utilities/nucleosomeShiftSE.sh ${name}_reads.bed && \
+        ${MY_PATH}/../utilities/nucleosomeShiftSingleEnd.sh ${name}_reads.bed && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_reads_shift.bdg && \
