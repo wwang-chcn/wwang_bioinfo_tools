@@ -20,6 +20,7 @@ def get_fastq_file_path(row):
     
     return fastq_file_path, fastq_file
 
+
 def gen_download_script(rows):
     for row in rows:
         fastq_file_path, fastq_file = get_fastq_file_path(row)
