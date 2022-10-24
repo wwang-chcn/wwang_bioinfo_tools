@@ -166,6 +166,7 @@ function clearning_up {
     compress_bed 2_signal/${controlName}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
+    # for SNP
     if [[ $# -eq 12 ]]; then
         compress_bed 2_signal/${name1}_fragments.bed ${genomeVersion}
         compress_bed 2_signal/${name2}_fragments.bed ${genomeVersion}
