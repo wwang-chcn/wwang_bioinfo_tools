@@ -34,7 +34,7 @@ function normalizationFactor_handling {
 
 # ----- parameters -----
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 3 ]]; then
     echo No enought parameters!
     print_help
     exit 1
