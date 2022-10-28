@@ -17,7 +17,7 @@ def load_sample(running_file):
         for line in fhd:
             if not line.startswith('bash'):
                 continue
-            _, _, name, processer, genomeVersion, reads1_files, reads2_files, *_ = line.strip(
+            _, _, name, _, genomeVersion, reads1_files, reads2_files, *_ = line.strip(
             ).split()
             yield name, genomeVersion, reads1_files, reads2_files
 
@@ -112,7 +112,7 @@ def main():
 
             # mapping
             total, mapped, chrM = 0, 0, 0
-            with open(f'./1_mapping/{sample}_mapping.log', 'r') as fhd:
+            with open(f'./1_mapping/Mapping_{sample}.log', 'r') as fhd:
                 line = next(fhd)
                 total = int(line.strip().split()[0])
             with open(f'./2_signal/{sample}_chromosome_distribution.txt',
@@ -123,7 +123,7 @@ def main():
                     if line[0] == 'chrM':
                         chrM += int(line[1])
                     mapped += int(line[1])
-            )  # Raw reads pair \t mapped reads pair \t mapping efficiency
+            # Raw reads pair \t mapped reads pair \t mapping efficiency
 
             # unique nuclear fragments & duplicate level
             raw_fragment = int(
@@ -146,8 +146,7 @@ def main():
 
             mapping_csv.writerow(output_line)
 
-            with open('./2_signal/{}_fragments_length.txt'.format(sample),
-                      'r') as fl:
+            with open(f'./2_signal/{sample}_fragments_length.txt', 'r') as fl:
                 next(fl)
                 fL = [0 for i in range(301)]
                 for line in fl:
