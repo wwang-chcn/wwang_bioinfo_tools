@@ -49,6 +49,8 @@ IFS=',' read -r -a ReadsFiles2 <<< ${reads2}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak
 
+trim_galore_processer=`bc <<< """${processer} / 2"""`
+if [[ ${trim_galore_processer} -lt 1 ]]; then trim_galore_processer=1; fi
 
 # ----- mapping & filtering -----
 
@@ -63,7 +65,7 @@ function mapping_filtering {
             fi
         done
         if [[ "$filteredReadsFlag" = true ]]; then
-            trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j 4 --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
+            trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j ${trim_galore_processer} --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
         fi
         if [[ "$main_chrom" = true ]]; then
             (bowtie2 -p ${processer} --mm -x /mnt/Storage/home/wangwen/source/bySpecies/${genomeVersion}/${genomeVersion}_main --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/Mapping_${name}.log
