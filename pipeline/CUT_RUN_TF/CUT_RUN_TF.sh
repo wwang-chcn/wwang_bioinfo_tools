@@ -99,7 +99,7 @@ function mapping_filtering {
 function piling_up {
     cd 2_signal
     fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ${name}_fragments_length.txt`
-    if [[ ! -e ${name}.bw ]]; then
+    if [[ ! -e 2_signal/${name}.bw ]]; then
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
@@ -113,7 +113,7 @@ function piling_up {
 
 # ----- short fragments -----
 function short_fragments {
-    if [[ ! -e ${name}_OCR.bw ]]; then
+    if [[ ! -e 2_signal/${name}_OCR.bw ]]; then
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ${name}_fragments_length.txt`
         awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
