@@ -97,7 +97,6 @@ function mapping_filtering {
 
 # ----- pileup -----
 function piling_up {
-    pwd; ls ; ls 2_signal
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ${name}_fragments_length.txt`
