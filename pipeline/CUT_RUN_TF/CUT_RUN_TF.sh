@@ -97,6 +97,7 @@ function mapping_filtering {
 
 # ----- pileup -----
 function piling_up {
+    pwd; ls ; ls 2_signal
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ${name}_fragments_length.txt`
@@ -106,14 +107,15 @@ function piling_up {
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_fragments_shift.bdg && \
         ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
         rm ${name}_fragments_shift.bed ${name}_fragments_shift.bdg
+        cd ..
     fi &
     wait
-    cd ..
 }
 
 # ----- short fragments -----
 function short_fragments {
     if [[ ! -e 2_signal/${name}_OCR.bw ]]; then
+        echo B start
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ${name}_fragments_length.txt`
         awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
@@ -125,6 +127,7 @@ function short_fragments {
         genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_OCR_fragments_shift.bdg && \
         ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_OCR && \
         rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
+        echo B end
         cd ..
     fi
 }
@@ -138,5 +141,6 @@ function clearning_up {
 
 # ----- running -----
 mapping_filtering
+piling_up
 short_fragments
 clearning_up
