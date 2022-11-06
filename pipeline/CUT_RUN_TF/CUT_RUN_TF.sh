@@ -123,7 +123,7 @@ function short_fragments {
         n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_OCR_fragments_shift.bdg && \
-        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
+        ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_OCR && \
         rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
         cd ..
     fi
