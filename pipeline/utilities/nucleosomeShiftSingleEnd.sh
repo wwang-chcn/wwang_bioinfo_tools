@@ -20,5 +20,5 @@ awk -v shiftSize=$shiftSize -v endShiftSize=$endShiftSize '
 			if($2-endShiftSize>0)
 				printf $1"\t"$3-endShiftSize"\t"$3-shiftSize"\t"$4"\t"$5"\t"$6"\n"
 		}
-}' $1 | sort -k1,1 -k2,2g > ${1::(${#1}-4)}_shift.bed
+}' $1 | sort -k1,1 -k2,2n > ${1::(${#1}-4)}_shift.bed
 
