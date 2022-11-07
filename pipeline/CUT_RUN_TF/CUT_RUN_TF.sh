@@ -68,7 +68,7 @@ MY_PATH="`dirname \"$0\"`"
 IFS=',' read -r -a ReadsFiles1 <<< ${reads1}
 IFS=',' read -r -a ReadsFiles2 <<< ${reads2}
 
-mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak
+mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal 3_peak 4_basic_QC
 
 trim_galore_processer=`bc <<< """${processer} / 2"""`
 if [[ ${trim_galore_processer} -lt 1 ]]; then trim_galore_processer=1; fi
@@ -97,18 +97,24 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${name}_raw_fragments.bed && ! -e 2_signal/${name}_raw_fragments.bb ]]; then
         bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' > 2_signal/${name}_raw_fragments.bed
     fi
-    if [[ ! -e 2_signal/${name}_raw_chromosome_distribution.txt ]]; then
-        cut -f 1 2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_raw_chromosome_distribution.txt
-    fi
     if [[ ! -e 2_signal/${name}_fragments.bed && ! -e 2_signal/${name}_fragments.bb ]]; then
         sort -S 1% -k1,1 -k2,2n 2_signal/${name}_raw_fragments.bed | uniq > 2_signal/${name}_fragments.bed
     fi
-    if [[ ! -e 2_signal/${name}_chromosome_distribution.txt ]]; then
-        cut -f 1 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_chromosome_distribution.txt
+}
+
+# ----- basic QC -----
+function basic_QC {
+    cd 4_basic_QC
+    if [[ ! -e ${name}_raw_chromosome_distribution.txt ]]; then
+        cut -f 1 ../2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > ${name}_raw_chromosome_distribution.txt
     fi
-    if [[ ! -e 2_signal/${name}_fragments_length.txt ]]; then
-        awk '{print $3-$2}' 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_fragments_length.txt
+    if [[ ! -e ${name}_chromosome_distribution.txt ]]; then
+        cut -f 1 ../2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > ${name}_chromosome_distribution.txt
     fi
+    if [[ ! -e ${name}_fragments_length.txt ]]; then
+        awk '{print $3-$2}' ../2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > ${name}_fragments_length.txt
+    fi
+    cd ..
 }
 
 # ----- cut_sites -----
@@ -171,6 +177,7 @@ function clearning_up {
 
 # ----- running -----
 mapping_filtering
+basic_QC
 cut_sites
 piling_up
 short_fragments

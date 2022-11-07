@@ -96,7 +96,7 @@ class CRTFsample(object):
     
     def get_mapped_info(self) -> None:
         """get total & chrM mapped fragments num from chromsome distribution file"""
-        chromsome_distribution_file = f'2_signal/{self.name}_raw_chromosome_distribution.txt'
+        chromsome_distribution_file = f'4_basic_QC/{self.name}_raw_chromosome_distribution.txt'
         # chromsome distribution file check
         if not self.file_check(chromsome_distribution_file, 'chromsome distribution'):
             return
@@ -216,7 +216,7 @@ def main():
             CRTFsample_.get_fragments_num()
             mapping_csv.writerow(CRTFsample_.output_line())
 
-            fragments_length_file = f'2_signal/{name}_fragments_length.txt'
+            fragments_length_file = f'4_basic_QC/{name}_fragments_length.txt'
             if CRTFsample_.file_check(fragments_length_file, 'fragments length'):
                 with open(fragments_length_file, 'r') as fhd:
                     next(fhd)
