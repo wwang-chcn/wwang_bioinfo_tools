@@ -33,6 +33,15 @@ function compress_bed {
         # rm ${bedFile}
     fi
 }
+function bedToBigWig {
+    name_=${1}
+    genomeVersion=${2}
+    n=`cat ${name_}.bed | wc -l` && \
+    c=`bc -l <<< "1000000 / ${n}"` && \
+    genomeCoverageBed -bga -scale $c -i ${name_}.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name_}.bdg && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name_}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name_} && \
+    rm ${name_}.bdg
+}
 
 # ----- parameters -----
 if [[ $# -lt 6 ]]; then
@@ -65,7 +74,6 @@ trim_galore_processer=`bc <<< """${processer} / 2"""`
 if [[ ${trim_galore_processer} -lt 1 ]]; then trim_galore_processer=1; fi
 
 # ----- mapping & filtering -----
-
 function mapping_filtering {
     if [[ ! -e 1_mapping/${name}.bam  ]]; then
         reads_file_process ${ReadsFiles1[@]} ${ReadsFiles2[@]}
@@ -86,17 +94,32 @@ function mapping_filtering {
         fi
         rm ${filteredReads1[@]} ${filteredReads2[@]}
     fi
-    if [[ ! -e 2_signal/${name}_raw_fragments.bed  ]]; then
+    if [[ ! -e 2_signal/${name}_raw_fragments.bed ]]; then
         bamToBed -bedpe -i 1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' > 2_signal/${name}_raw_fragments.bed
     fi
-    cut -f 1 2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_raw_chromosome_distribution.txt
+    # cut -f 1 2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_raw_chromosome_distribution.txt
     if [[ ! -e 2_signal/${name}_fragments.bed  ]]; then
         sort -S 1% -k1,1 -k2,2n 2_signal/${name}_raw_fragments.bed | uniq > 2_signal/${name}_fragments.bed
     fi
-    cut -f 1 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_chromosome_distribution.txt
-    awk '{print $3-$2}' 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_fragments_length.txt
+    # cut -f 1 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_chromosome_distribution.txt
+    # awk '{print $3-$2}' 2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > 2_signal/${name}_fragments_length.txt
 }
 
+# ----- cut_sites -----
+function cut_sites {
+    cd 2_signal
+    if ([ ! -e ${name}_cutsites.bed ] && [ ! -e ${name}_cutsites.bb ]) || ([ ! -e ${name}_cutsites_plus.bed ] && [ ! -e ${name}_cutsites_plus.bb ]) || ([ ! -e ${name}_cutsites_minus.bed ] && [ ! -e ${name}_cutsites_minus.bb ]); then
+        awk '{print $1"\t"$2"\t"$2+1"\tcut_site\t0\t+\n"$1"\t"$3-1"\t"$3"\tcut_site\t0\t-"}' ${name}_fragments.bed | sort -k1,1 -k2,2n > ${name}_cutsites.bed
+        awk '{if($6=="+") print $0}' ${name}_cutsites.bed | sort -k1,1 -k2,2n > ${name}_cutsites_plus.bed
+        awk '{if($6=="-") print $0}' ${name}_cutsites.bed | sort -k1,1 -k2,2n > ${name}_cutsites_minus.bed
+    fi
+    for name_ in ${name}_cutsites ${name}_cutsites_plus ${name}_cutsites_minus; do
+        if [[ ! -e ${name_}.bw ]]; then
+            bedToBigWig ${name_} ${genomeVersion}
+        fi
+    done
+    cd ..
+}
 
 # ----- pileup -----
 function piling_up {
@@ -142,6 +165,7 @@ function clearning_up {
 
 # ----- running -----
 mapping_filtering
+cut_sites
 piling_up
 short_fragments
 clearning_up
