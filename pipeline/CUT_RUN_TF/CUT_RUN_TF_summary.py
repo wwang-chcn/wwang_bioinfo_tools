@@ -150,6 +150,16 @@ class CRTFsample(object):
         except FileNotFoundError:
             self.fragments_status.status = False
     
+    def cutsites_files_check(self) -> None:
+        """cut sites files check"""
+        if not os.path.isfile(f'2_signal/{self.name}_cutsites.bed') and not os.path.isfile(f'2_signal/{self.name}_cutsites.bb'):
+            sys.stdout.write(f'Warning! Cut sites files: ({self.name}_cutsites.bed and {self.name}_cutsites.bb) for sample: {self.name} were not exist!\n')
+        if not os.path.isfile(f'2_signal/{self.name}_cutsites_plus.bed') and not os.path.isfile(f'2_signal/{self.name}_cutsites_plus.bb'):
+            sys.stdout.write(f'Warning! Cut sites plus strand files: ({self.name}_cutsites_plus.bed and {self.name}_cutsites_plus.bb) for sample: {self.name} were not exist!\n')
+        if not os.path.isfile(f'2_signal/{self.name}_cutsites_minus.bed') and not os.path.isfile(f'2_signal/{self.name}_cutsites_minus.bb'):
+            sys.stdout.write(f'Warning! Cut sites minus strand files: ({self.name}_cutsites_minus.bed and {self.name}_cutsites_minus.bb) for sample: {self.name} were not exist!\n')
+
+
     def output_line(self) -> list:
         """output in list format"""
         out = []
@@ -214,6 +224,7 @@ def main():
             CRTFsample_.get_input_reads_info()
             CRTFsample_.get_mapped_info()
             CRTFsample_.get_fragments_num()
+            CRTFsample_.cutsites_files_check()
             mapping_csv.writerow(CRTFsample_.output_line())
 
             fragments_length_file = f'4_basic_QC/{name}_fragments_length.txt'
