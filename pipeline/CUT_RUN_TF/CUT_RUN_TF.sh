@@ -36,9 +36,7 @@ function compress_bed {
 function bedToBigWig {
     name_=${1}
     genomeVersion=${2}
-    n=`cat ${name_}.bed | wc -l` && \
-    c=`bc -l <<< "1000000 / ${n}"` && \
-    genomeCoverageBed -bga -scale $c -i ${name_}.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name_}.bdg && \
+    genomeCoverageBed -bga -i ${name_}.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name_}.bdg && \
     ${MY_PATH}/../utilities/bdg2bw.sh ${name_}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name_} && \
     rm ${name_}.bdg
 }
