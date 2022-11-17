@@ -31,7 +31,7 @@ def count_kmer(seq, kmer_len, seq_tpye='DNA', reverse_complement=True):
 
 
 def count_kmer2(seq, kmer_len, seq_tpye='DNA', reverse_complement=True):
-    """Count the occurance times  k-mer from length 1 to k in sequence."""
+    """Count the occurance times k-mer from length 1 to k in sequence."""
     # pre-processing
     seq = seq.upper()
     kmer_count_plus = defaultdict(int)
