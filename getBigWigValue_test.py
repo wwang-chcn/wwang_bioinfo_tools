@@ -9,6 +9,7 @@ from optparse import OptionParser
 import subprocess
 from multiprocessing import cpu_count, Pool
 import time
+from time import localtime, strftime
 import numpy as np
 import pandas as pd
 import gzip
@@ -139,6 +140,7 @@ Return
 
 
 def capture_unit(file_names):
+    """wrapper for parallel running"""
     avg_signal_over_bed(*file_names)
 
 
@@ -147,6 +149,7 @@ def reverse_by_flag(row, flag):
 
 
 def capture_signal(options):
+    print(strftime("Start capture: %a, %d %b %Y %H:%M:%S", localtime()))
     # get input & output for each basic capture unit
     file_names = []
     for bigwig_file_index, bigwig_file in enumerate(options.bigWigFiles):
@@ -160,6 +163,7 @@ def capture_signal(options):
         pool.map(capture_unit, file_names)
     os.chdir('..')
     # load signal
+    print(strftime("Start post-processing: %a, %d %b %Y %H:%M:%S", localtime()))
     with open(options.bedFile) as fhd:
         names = [line.strip().split()[3] for line in fhd]
         if options.strand:
@@ -178,6 +182,8 @@ def capture_signal(options):
             signal_matrix = pd.DataFrame(data=arr, index=names, columns=np.arange(options.datapoints))
         signal_matrix.to_csv(f'signal_{options.name}_siteprof{bigwig_file_index+1}.csv.gz')
     rmtree(options.name)
+    print(strftime("End post-processing: %a, %d %b %Y %H:%M:%S", localtime()))
+
 
 # ------------------------------
 # Main Funcitons
