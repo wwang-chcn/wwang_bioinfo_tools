@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Notes
+# try using bigWigAverageOverBed
+# only small evalution in 10,000 regions
+
 # ------------------------------
 # Import Modules
 # ------------------------------
