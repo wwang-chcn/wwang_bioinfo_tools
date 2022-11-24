@@ -18,7 +18,7 @@ def prepare_optparser():
     
     program_name = os.path.basename(sys.argv[0])
     usage = 'usage: %prog <-g genome_file> <-b bed_file> <-o output_name> [-w window] [-s step]'
-    description = 'Get sequence feature for given regions.'
+    description = 'Get sequence feature for given regions. Return the maximum value of sequence features in the window of each regions.'
     
     # option processor
     optparser = OptionParser(version='%prog 0.1', description=description, usage=usage, add_help_option=False)
@@ -102,9 +102,9 @@ def cal_sequence_feature(sequence, options):
         GC, CpG_density, CpG_ratio = [], [], []
         for i in range((n - options.window) // options.step):
             sequence_ = sequence[options.step*i:options.step*i+options.window]
-            G = sequence.count('G')
-            C = sequence.count('C')
-            CpG = sequence.count('CG')
+            G = sequence_.count('G')
+            C = sequence_.count('C')
+            CpG = sequence_.count('CG')
             GC.append(1.0 * (G + C) / n)
             CpG_density.append(1.0 * CpG / n)
             CpG_ratio.append(1.0 * CpG * n / C / G)
