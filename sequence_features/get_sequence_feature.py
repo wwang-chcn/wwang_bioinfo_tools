@@ -49,39 +49,39 @@ def opt_validate(optparser):
         sys.stdout.write('Error: Input genome sequence file must be given!\nExit\n')
         optparser.print_help()
         sys.exit(1)
-        if not os.path.isfile(os.path.expanduser(options.genome)):
-            sys.stdout.write(f'Error: Input genome sequence file: {options.genome} can not be found!\nExit\n')
-            optparser.print_help()
-            sys.exit(1)
-        suffix = options.genome.split('.')[-1]
-        if not suffix in ['2bit','fa','fasta']:
-            sys.stdout.write('Error: Input genome sequence file must be 2bit or fasta format!\nExit\n')
-            optparser.print_help()
-            sys.exit(1)
-        if suffix == '2bit':
-            sys.stdout.write('Info: Input genome sequence file in 2bit format.\n')
-        else:
-            sys.stdout.write('Info: Input genome sequence file in fasta format.\n')
+    if not os.path.isfile(os.path.expanduser(options.genome)):
+        sys.stdout.write(f'Error: Input genome sequence file: {options.genome} can not be found!\nExit\n')
+        optparser.print_help()
+        sys.exit(1)
+    suffix = options.genome.split('.')[-1]
+    if not suffix in ['2bit','fa','fasta']:
+        sys.stdout.write('Error: Input genome sequence file must be 2bit or fasta format!\nExit\n')
+        optparser.print_help()
+        sys.exit(1)
+    if suffix == '2bit':
+        sys.stdout.write('Info: Input genome sequence file in 2bit format.\n')
+    else:
+        sys.stdout.write('Info: Input genome sequence file in fasta format.\n')
     
     # input bed file must be given
     if not options.bed:
         sys.stdout.write('Error: Input bed file must be given!\nExit\n')
         optparser.print_help()
         sys.exit(1)
-        if not os.path.isfile(os.path.expanduser(options.bed)):
-            sys.stdout.write(f'Error: Input bed file: {options.bed} can not be found!\nExit\n')
-            optparser.print_help()
-            sys.exit(1)
+    if not os.path.isfile(os.path.expanduser(options.bed)):
+        sys.stdout.write(f'Error: Input bed file: {options.bed} can not be found!\nExit\n')
+        optparser.print_help()
+        sys.exit(1)
     
     # output file must be given
     if not options.output:
         sys.stdout.write('Error: Output file must be given!\nExit\n')
         optparser.print_help()
         sys.exit(1)
-        if os.path.isfile(os.path.expanduser(options.output)):
-            sys.stdout.write(f'Warning: Output file: {options.output} alread exist!\n')
-            optparser.print_help()
-            sys.exit(1)
+    if os.path.isfile(os.path.expanduser(options.output)):
+        sys.stdout.write(f'Warning: Output file: {options.output} alread exist!\n')
+        optparser.print_help()
+        sys.exit(1)
     
     # step should be set when window is set
     if options.window and not options.step:
