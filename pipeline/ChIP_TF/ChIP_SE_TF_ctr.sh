@@ -116,7 +116,7 @@ function piling_up {
     cd 2_signal
     fragment_length=`grep "predicted fragment length is" ../3_peak/${name}_MACS.out | cut -f 14 -d " "`
     if [[ ! -e ${name}.bw ]]; then
-        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \
@@ -124,7 +124,7 @@ function piling_up {
         rm ${name}_reads_shift.bed ${name}_reads_shift.bdg
     fi &
     if [[ ! -e ${controlName}.bw ]]; then
-        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${controlName}_reads.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${controlName}_reads.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${controlName}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${controlName}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${controlName}_reads_shift.bdg && \
@@ -136,7 +136,7 @@ function piling_up {
 }
 
 # ----- basic_QC -----
-function basic_QC {
+function basic_QC { # TODO ceasBW debug
     cd 4_basic_QC
     cut -f 1-3 ../3_peak/${name}_peaks.narrowPeak > ../3_peak/${name}_peaks.bed
     ceasBW -b ../3_peak/${name}_peaks.bed -w ../2_signal/${name}.bw -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.refGene.sq3 --name ${name} -l ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes --bg
