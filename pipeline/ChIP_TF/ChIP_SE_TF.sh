@@ -90,7 +90,7 @@ function piling_up {
     cd 2_signal
     fragment_length=`grep "predicted fragment length is" ../3_peak/${name}_MACS.out | cut -f 14 -d " "`
     if [[ ! -e ${name}.bw ]]; then
-        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftSingleEnd.sh ${name}_reads.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_reads_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_reads_shift.bdg && \
