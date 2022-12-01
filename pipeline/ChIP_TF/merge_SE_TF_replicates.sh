@@ -5,7 +5,7 @@ function print_help {
 }
 
 function bedToBigWig {
-    fragment_length=`awk 'BEGIN{s=0} {s+=$2} END{printf "%f", s/NR}' ${name}_reads.bed`
+    fragment_length=`grep "predicted fragment length is" ${name}_MACS.out | cut -f 14 -d " "`
     ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_reads.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
     n=`wc -l ${name}_reads_shift.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
@@ -19,7 +19,7 @@ function compress_bed {
     genomeVersion=${2}
     col=`head -1 ${bedFile} | awk '{print NF}'`
     plus=`bc <<< "$col -3"`
-    intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp
+    intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -S 5% -k1,1 -k2,2n > ${bedFile}.tmp
     bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
     rm ${bedFile} ${bedFile}.tmp
 }
@@ -52,11 +52,10 @@ for i in $@; do
 done
 
 # merge read files
-cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_reads.bed
+cat ${fragments_array[@]} | sort -S 5% -k1,1 -k2,2n > 4_merged_sample/${name}_reads.bed
 cd 4_merged_sample/
-bedToBigWig &
-macs2 callpeak -f BED -t ${name}_reads.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out &
-wait
+macs2 callpeak -f BED -t ${name}_reads.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out
+bedToBigWig
 compress_bed ${name}_reads.bed ${genomeVersion}
 cd ..
 
