@@ -1,10 +1,15 @@
 #! /usr/bin/env python3
 
-import os, sys
-from numpy import nanmean
+import os
+import sys
 from collections import defaultdict
 
-USAGE = '%prog <name> <tssFile> <methylationFile> <span> <window> <step>'
+from numpy import nanmean
+
+self_name = sys.argv[0]
+USAGE = f'{self_name} <name> <tssFile> <methylationFile> <span> <window> <step>'
+if len(sys.argv) < 7:
+    sys.stdout.write(f'No enough parameters!\n{USAGE}\n')
 
 name            =     sys.argv[1]
 tssFile         =     sys.argv[2]
