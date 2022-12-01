@@ -7,11 +7,13 @@ function print_help {
 }
 
 function bedToBigWig {
-    n=`wc -l ${name}_fragments.bed | cut -f 1 -d " "`
+    fragment_length=`awk 'BEGIN{s=0} {s+=$2} END{printf "%f", s/NR}' ${name}_fragments.bed`
+    ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
+    n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
-    genomeCoverageBed -bga -scale $c -i ${name}_fragments.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments.bdg
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
-    rm ${name}_fragments.bdg
+    genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments_shift.bdg
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
+    rm ${name}_fragments_shift.bdg ${name}_fragments_shift.bed
 }
 
 function compress_bed {
