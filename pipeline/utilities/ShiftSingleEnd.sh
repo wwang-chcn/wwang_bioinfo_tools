@@ -2,10 +2,10 @@
 
 # Nov-1-2018
 
-# USAGE: $0 <reads.bed> <fragments_length>
+# USAGE: $0 <reads.bed> <fragments_length> <chrom.sizes>
 
 function print_help {
-        echo "USAGE: $0 <reads.bed>"
+        echo "USAGE: $0 <reads.bed> <fragments_length> <chrom.sizes>"
 }
 
 
