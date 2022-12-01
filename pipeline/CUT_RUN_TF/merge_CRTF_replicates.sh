@@ -7,7 +7,7 @@ function print_help {
 }
 
 function bedToBigWig {
-    fragment_length=`awk 'BEGIN{s=0} {s+=$2} END{printf "%f", s/NR}' ${name}_fragments.bed`
+    fragment_length=`awk 'BEGIN{s=0} {s+=$3-$2} END{printf "%f", s/NR}' ${name}_fragments.bed`
     ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
     n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
@@ -56,12 +56,13 @@ done
 # merge fragment files
 cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_fragments.bed
 cd 4_merged_sample/
-bedToBigWig
-macs2 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out
+bedToBigWig &
+macs2 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out &
+wait
 compress_bed ${name}_fragments.bed ${genomeVersion}
 cd ..
-#for i in $@; do
-#    if [[ -e 2_signal/${i}_fragments.bb ]]; then
-#        rm 2_signal/${i}_fragments.bed
-#    fi
-#done
+for i in $@; do
+   if [[ -e 2_signal/${i}_fragments.bb ]]; then
+       rm 2_signal/${i}_fragments.bed
+   fi
+done
