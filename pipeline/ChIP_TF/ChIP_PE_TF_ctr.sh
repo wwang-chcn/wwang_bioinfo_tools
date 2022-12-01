@@ -127,7 +127,7 @@ function piling_up {
     cd 2_signal
     fragment_length=`grep "fragment size =" ../3_peak/${name}_MACS.log | cut -f 12 -d " "`
     if [[ ! -e ${controlName}.bw ]]; then
-        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${controlName}_fragments.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${controlName}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${controlName}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${controlName}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${controlName}_fragments_shift.bdg && \
@@ -136,7 +136,7 @@ function piling_up {
     fi &
 
     if [[ ! -e ${name}.bw ]]; then
-        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} && \
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes > ${name}_fragments_shift.bdg && \
