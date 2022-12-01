@@ -9,7 +9,8 @@ from numpy import nanmean
 self_name = sys.argv[0]
 USAGE = f'{self_name} <name> <tssFile> <methylationFile> <span> <window> <step>'
 if len(sys.argv) < 7:
-    sys.stdout.write(f'No enough parameters!\n{USAGE}\n')
+    sys.stderr.write(f'No enough parameters!\n{USAGE}\n')
+    sys.exit(1)
 
 name            =     sys.argv[1]
 tssFile         =     sys.argv[2]
