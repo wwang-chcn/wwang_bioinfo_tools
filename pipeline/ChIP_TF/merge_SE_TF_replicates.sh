@@ -48,11 +48,11 @@ for i in $@; do
         fi
         bigBedToBed 2_signal/${i}_reads.bb 2_signal/${i}_reads.bed
     fi
-    fragments_array+=("2_signal/${i}_reads.bed")
+    reads_file_array+=("2_signal/${i}_reads.bed")
 done
 
 # merge read files
-cat ${fragments_array[@]} | sort -S 5% -k1,1 -k2,2n > 4_merged_sample/${name}_reads.bed
+cat ${reads_file_array[@]} | sort -S 5% -k1,1 -k2,2n > 4_merged_sample/${name}_reads.bed
 cd 4_merged_sample/
 macs2 callpeak -f BED -t ${name}_reads.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out
 bedToBigWig
