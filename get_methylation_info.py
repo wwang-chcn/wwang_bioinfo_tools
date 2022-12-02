@@ -28,7 +28,7 @@ def getMethylationInfo(tss, methylation, span, window, step):
     unmethylatedCpG = []
     methylatedCpG = []
     mediumCpG = []
-    for i in range(2*(span-window/2)/step+1):
+    for i in range(int(2*(span-window/2)/step+1)):
         local_methylation = []
         for j in range(window+1):
             if pos-span+i*step+j-1 in methylation[chrom]:
