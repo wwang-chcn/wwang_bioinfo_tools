@@ -35,7 +35,7 @@ class Bed():
 # ------------------------------------
 # Misc Functions
 # ------------------------------------
-def match_comparsion(match, start: int, end: int, region):
+def match_comparsion(match: Optional[list], start: int, end: int, region):
     """Compare new match with previous one, and select the most cloest element
 
 Parameters
@@ -53,7 +53,7 @@ status: bool
         If true, the target annotation have been found.
 """
     distance = abs((start + end) - (region[0] + region[1])) >> 1
-    if match is not None:
+    if match is None:
         return [distance, region[2]], False
     if match[0] < distance:
         return match, True
@@ -321,14 +321,14 @@ def main():
 
     # do annotation
     output_file_name = f'{options.bed.rsplit(".", 1)[0]}_annotation.txt'
-    no_match_info = 'intergenic\tNA\tNA\n'
+    no_match_info = '\tintergenic\tNA\tNA\n'
     elsments_priority = ['promoter', 'exon', 'intron', 'enhancer']
 
     with open(options.bed) as bed_fhd, \
          open(output_file_name, 'w') as output_fhd:
         for line in bed_fhd:
             new_line = line.strip()
-            chrom, start, end = line.strip().split()
+            chrom, start, end, *_ = line.strip().split()
             start, end = int(start), int(end)
             if chrom not in annotationRegion['promoter']:
                 new_line += no_match_info
@@ -337,7 +337,7 @@ def main():
                 match = region_annotate((chrom, start, end),
                                         annotationRegion[element])
                 if match is not None:
-                    new_line += f'{element}\t{match[1]:d}\t{match[0]:d}\n'
+                    new_line += f'\t{element}\t{match[1]:s}\t{match[0]:d}\n'
                     break
             else:
                 new_line += no_match_info
