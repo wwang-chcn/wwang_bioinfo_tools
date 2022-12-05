@@ -171,7 +171,7 @@ file_urls : Iterable[str]
                 yield ascp_server_base + data_root + run_url + path
 
 
-def gen_download_scrip(ascp_file: str, key_file: str,
+def gen_download_scrip(ascp_file: str, key_file: str, download_files: list,
                        file_urls: Iterable[str]) -> Iterable[str]:
     """Generate download script based on given file url.
 Parameters
@@ -185,7 +185,9 @@ download_scirpts : Iterable[str]
                    Iterable sequencing file download script.
 """
     for file_url in file_urls:
-        yield f'{ascp_file} -QT -l 300m -P33001 -i {key_file} {file_url} {file_url.rsplit("/", 1)[1]}'
+        download_file = file_url.rsplit("/", 1)[1]
+        download_files.append(download_file)
+        yield f'if [[ -e {file_url.rsplit("/", 1)[1]} ]]; then {ascp_file} -QT -l 300m -P33001 -i {key_file} {file_url} {download_file}; fi'
 
 
 # ------------------------------
@@ -197,13 +199,18 @@ def main():
     # read the options and validate them
     options = opt_validate(prepare_optparser())
 
+    download_files = []
+
     run_accessions = gen_run_accession(options.accession)
     file_urls = gen_file_url(run_accessions)
     download_scirpts = gen_download_scrip(options.execute, options.key,
-                                          file_urls)
+                                          download_files, file_urls)
     with open(options.output, 'w') as fhd:
         for download_scirpt in download_scirpts:
             fhd.write(download_scirpt + '\n')
+    # check download status
+    download_files_list = ' '.join(download_files)
+    fhd.write(f'for file in {download_files_list}; do if [[ ! -e $file ]]; then echo "$file do not download!."; fi; done\n')
 
 
 # ------------------------------
