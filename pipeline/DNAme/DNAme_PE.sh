@@ -51,5 +51,5 @@ bsmap -p ${processer} -a 0_raw_data/${name}_1.fastq.gz -b 0_raw_data/${name}_2.f
 mcall -p ${processer} -m 1_mapping/${name}.sam --outputDir 2_methylation_value -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log && mv 1_mapping/${name}.sam.G.bed 1_mapping/${name}.sam.HG.bed 1_mapping/${name}.sam_stat.txt 2_methylation_value
 rm ${filteredReads1[@]} ${filteredReads2[@]} 0_raw_data/${name}_1.fastq.gz 0_raw_data/${name}_2.fastq.gz
 cd 1_mapping
-samtools view -bS ${name}.sam > ${name}.bam && rm ${name}.sam
+samtools view -@ $((${processer}-1)) -bS ${name}.sam > ${name}.bam && rm ${name}.sam
 cd ..
