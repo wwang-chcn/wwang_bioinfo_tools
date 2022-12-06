@@ -22,7 +22,6 @@ function reads_file_process {
 }
 function compress_bed {
     bedFile=${1}
-    genomeVersion=${2}
     col=`head -1 ${bedFile} | awk '{print NF}'`
     plus=`bc <<< "$col -3"`
     intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp
@@ -54,8 +53,8 @@ function mapping_filtering {
     if [[ ! -e 1_mapping/${name}.bam ]]; then
         reads_file_process ${readsFiles1[@]} ${readsFiles2[@]} && \
         trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn && \
-        (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> ${name}_mapping.log && \
-        rm ${filteredReads1[@]} ${filteredReads2[@]}
+        (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log #&& \
+        # rm ${filteredReads1[@]} ${filteredReads2[@]}
     fi
 }
 
@@ -63,7 +62,7 @@ function mapping_filtering {
 function piling_up {
     cd 2_signal
     if [[ ! -e ${name}.bw ]]; then
-        bamToBed -bedpe -i ../1_mapping/${name}.bam | awk '{if($9=="+"&&$10=="-") print $1"\t"$2"\t"$6"\t"$7"\t"$8"\t.\t"; if($9=="-"&&$10=="+") print $1"\t"$5"\t"$3"\t"$7"\t"$8"\t.\t"}' | awk '$1 !~ /_/{if($3>$2) print}' | sort -S 1% -k1,1 -k2,2g | uniq > ${name}_fragments.bed && \
+        bamToBed -bedpe -i ../1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' | sort -k1,1 -k2,2n | uniq > ${name}_fragments.bed && \
         ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
@@ -78,7 +77,7 @@ function piling_up {
 # ----- clearning_up -----
 function clearning_up {
     rm 1_mapping/${name}.bam
-    compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
+    compress_bed 2_signal/${name}_fragments.bed
     if [[ $# -eq 8 ]]; then
         rm 1_mapping/${name}_${SNP_strain1}.bam 1_mapping/${name}_${SNP_strain2}.bam
         compress_bed 2_signal/${name}_${SNP_strain1}_fragments.bed ${genomeVersion}
