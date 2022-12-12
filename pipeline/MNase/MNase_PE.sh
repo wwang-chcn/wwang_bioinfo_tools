@@ -52,9 +52,10 @@ mkdir -p 1_mapping 2_signal 3_basic_QC
 function mapping_filtering {
     if [[ ! -e 1_mapping/${name}.bam ]]; then
         reads_file_process ${readsFiles1[@]} ${readsFiles2[@]} && \
-        trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn && \
+        # trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn && \
+        trim_galore --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn && \
         (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/${name}_mapping.log #&& \
-        # rm ${filteredReads1[@]} ${filteredReads2[@]}
+        rm ${filteredReads1[@]} ${filteredReads2[@]}
     fi
 }
 
