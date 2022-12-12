@@ -208,9 +208,9 @@ def main():
     with open(options.output, 'w') as fhd:
         for download_scirpt in download_scirpts:
             fhd.write(download_scirpt + '\n')
-    # check download status
-    download_files_list = ' '.join(download_files)
-    fhd.write(f'for file in {download_files_list}; do if [[ ! -e $file ]]; then echo "$file do not download!."; fi; done\n')
+        # check download status
+        download_files_list = ' '.join(download_files)
+        fhd.write(f'for file in {download_files_list}; do if [[ ! -e $file ]]; then echo "$file do not download!."; fi; done\n')
 
 
 # ------------------------------
