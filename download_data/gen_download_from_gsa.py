@@ -134,12 +134,12 @@ def gen_run_accession(cra_accessions: Iterable[str]) -> Iterable[str]:
 Parameters
 ----------
 cra_accessions : Iterable[str]
-                 CRA accessions.
+                 CRA accessions (CRA000000).
 
 Returns
 ----------
 run_accessions : Iterable[str]
-                 Iterable Run accessions.
+                 Iterable Run accessions (CRR000000).
 """
     for cra_accession in cra_accessions:
         cra_url = root_url + data_root + f'{cra_accession}/'
@@ -155,12 +155,12 @@ def gen_file_url(run_accessions: Iterable[str]) -> Iterable[str]:
 Parameters
 ----------
 run_accessions : Iterable[str]
-                 Iterable Run accessions.
+                 Iterable Run accessions (CRR000000).
 
 Returns
 ----------
 file_urls : Iterable[str]
-            Iterable sequencing file urls.
+            Iterable sequencing file urls (aspera01@download.cncb.ac.cn:gsa/CRA00000/CRR000000/CRR000000_r1.fq.gz).
 """
     for run_accession in run_accessions:
         run_url = root_url + data_root + run_accession
@@ -168,7 +168,7 @@ file_urls : Iterable[str]
                                   'html.parser').find_all('a'):
             path = node.get('href')
             if path.endswith('.gz'):
-                yield ascp_server_base + data_root + run_url + path
+                yield f'{ascp_server_base}{data_root}{run_accession}{path}'
 
 
 def gen_download_scrip(ascp_file: str, key_file: str, download_files: list,
