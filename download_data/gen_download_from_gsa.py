@@ -187,7 +187,7 @@ download_scirpts : Iterable[str]
     for file_url in file_urls:
         download_file = file_url.rsplit("/", 1)[1]
         download_files.append(download_file)
-        yield f'if [[ -e {file_url.rsplit("/", 1)[1]} ]]; then {ascp_file} -QT -l 300m -P33001 -i {key_file} {file_url} {download_file}; fi'
+        yield f'if [[ ! -e {file_url.rsplit("/", 1)[1]} ]]; then {ascp_file} -QT -l 300m -P33001 -i {key_file} {file_url} {download_file}; fi'
 
 
 # ------------------------------
