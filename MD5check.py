@@ -110,7 +110,7 @@ fastq_files = out.strip().split()
 index = 0
 failed_samples = {}
 
-for i in range(4):
+for i in range(8):
     new_thread = threading.Thread(target=check, args=(checksumCMD, ))
     new_thread.start()
 
