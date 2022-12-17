@@ -4,8 +4,8 @@
 
 # MD5 auto check on server
 
-import os, sys
 import subprocess
+import sys
 import threading
 from distutils.spawn import find_executable
 
@@ -17,12 +17,14 @@ def plotform_check():
     elif operation_system.startswith("linux"):
         checksumCMD = find_executable("md5sum")
     else:
-        sys.stdout.write("Do not support operation system except LINUX or macOS, exit!\n")
+        sys.stdout.write(
+            "Do not support operation system except LINUX or macOS, exit!\n")
         sys.exit(2)
     if not checksumCMD:
         sys.stdout.write("Can not find executable md5/md5sum, exit!\n")
         sys.exit(3)
     return checksumCMD
+
 
 def parse_md5_result(result):
     global lock
@@ -35,26 +37,38 @@ def parse_md5_result(result):
         name = name[1:-1]
     else:
         lock.acquire()
-        sys.stdout.write('Undetermined md5checkoutput format: {}.\n'.format('\t'.join(line)))
+        sys.stdout.write('Undetermined md5checkoutput format: {}.\n'.format(
+            '\t'.join(line)))
         lock.release()
-    return(name.split('/')[-1],md5)
+    return (name.split('/')[-1], md5)
 
-def md5_compare(name,md5,sampleMD5):
+
+def md5_compare(name, md5, sampleMD5):
     lock.acquire()
     try:
         if md5 == sampleMD5[name]:
             sys.stdout.write('Sample: {} is valid.\n'.format(name))
         else:
-            sys.stdout.write('Sample: {} is not valid. Expect md5: {}. Observed md5: {}.\n'.format(name, sampleMD5[name], md5))
+            sys.stdout.write(
+                'Sample: {} is not valid. Expect md5: {}. Observed md5: {}.\n'.
+                format(name, sampleMD5[name], md5))
     except KeyError:
-        sys.stdout.write('Sample: {} is not valid. Can not find expect md5 information. The observed md5 is: {}.\n'.format(name, md5))
+        sys.stdout.write(
+            'Sample: {} is not valid. Can not find expect md5 information. The observed md5 is: {}.\n'
+            .format(name, md5))
     lock.release()
 
+
 def get_md5():
-    sp = subprocess.Popen('{command} {args}'.format(command='cat',args='*md5*txt *md5 MD5* */*md5*txt */*md5 */MD5*'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, encoding='utf8')
+    sp = subprocess.Popen('{command} {args}'.format(
+        command='cat', args='*md5*txt *md5 MD5* */*md5*txt */*md5 */MD5*'),
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          shell=True,
+                          encoding='utf8')
     out, err = sp.communicate()
-    sampleMD5 = dict(map(parse_md5_result,out.strip().split("\n")))
-    return(sampleMD5)
+    sampleMD5 = dict(map(parse_md5_result, out.strip().split("\n")))
+    return (sampleMD5)
 
 
 def check(checksumCMD):
@@ -68,30 +82,37 @@ def check(checksumCMD):
         if index < len(fastq_files):
             index += 1
             lock.release()
-            sp = subprocess.Popen('{command} {args}'.format(command=checksumCMD,args=fastq_files[index-1]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, encoding='utf8')
+            sp = subprocess.Popen('{command} {args}'.format(
+                command=checksumCMD, args=fastq_files[index - 1]),
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  shell=True,
+                                  encoding='utf8')
             out, err = sp.communicate()
             name, md5 = parse_md5_result(out)
-            md5_compare(name,md5,sampleMD5)
+            md5_compare(name, md5, sampleMD5)
         else:
             lock.release()
             break
 
 
-
 lock = threading.Lock()
 checksumCMD = plotform_check()
 sampleMD5 = get_md5()
-sp = subprocess.Popen(" ".join(["ls", "*/*fastq.gz", "*fastq.gz", "*/*fq.gz", "*fq.gz"]), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, encoding='utf8')
+sp = subprocess.Popen(" ".join(
+    ["ls", "*/*fastq.gz", "*fastq.gz", "*/*fq.gz", "*fq.gz"]),
+                      stdout=subprocess.PIPE,
+                      stderr=subprocess.PIPE,
+                      shell=True,
+                      encoding='utf8')
 out, err = sp.communicate()
 fastq_files = out.strip().split()
 index = 0
 failed_samples = {}
 
 for i in range(4):
-    new_thread = threading.Thread(target=check,args=(checksumCMD,))
+    new_thread = threading.Thread(target=check, args=(checksumCMD, ))
     new_thread.start()
-
-
 
 ##def main():
 ##
