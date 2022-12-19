@@ -49,6 +49,6 @@ zcat ${filteredReads2[@]} | gzip - > 0_raw_data/${name}_2.fastq.gz &
 wait
 bsmap -p ${processer} -a 0_raw_data/${name}_1.fastq.gz -b 0_raw_data/${name}_2.fastq.gz -d ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa -R -n 1 -o 1_mapping/${name}.bam 2>&1 >>/dev/null | tee 1_mapping/Mapping_${name}.log
 samtools sort -@ $((${processer}-1)) 1_mapping/${name}.bam -T 1_mapping/${name}.tmp -o 1_mapping/${name}_sorted.bam
-mcall --skipRandomChrom -p ${processer} -m 1_mapping/${name}_sorted.bam --outputDir 2_methylation_value -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log
+mcall --skipRandomChrom 1 -p ${processer} -m 1_mapping/${name}_sorted.bam --outputDir 2_methylation_value -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log
 mv 1_mapping/${name}_sorted.bam.G.bed 1_mapping/${name}_sorted.bam.HG.bed 1_mapping/${name}_sorted.bam_stat.txt 2_methylation_value
 rm ${filteredReads1[@]} ${filteredReads2[@]} 0_raw_data/${name}_1.fastq.gz 0_raw_data/${name}_2.fastq.gz
