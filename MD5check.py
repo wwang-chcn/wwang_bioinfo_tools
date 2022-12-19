@@ -8,6 +8,27 @@ import subprocess
 import sys
 import threading
 from distutils.spawn import find_executable
+from optparse import OptionParser
+
+
+def prepare_optparser():
+    '''\
+    Prepare optparser object. New options will be added in thisfunction first.
+    '''
+    usage = 'USAGE: %prog -p [processor]'
+    description = 'bigWigSignalCapture -- Capture signal form bigWigFiles.'
+
+    # option processor
+    optparser = OptionParser(version='% prog 0.1',
+                             description=description,
+                             usage=usage,
+                             add_help_option=True)
+
+    # basic setting
+    optparser.add_option('-p', '--process',dest='process', type='int',\
+                         help='''Number of subprocess. Deafault number is 4.
+Please set to 1 when checking data on low speed disk like external hard drive.''',default=4)
+    return optparser
 
 
 def plotform_check():
@@ -96,6 +117,7 @@ def check(checksumCMD):
             break
 
 
+(options, args) = prepare_optparser().parse_args()
 lock = threading.Lock()
 checksumCMD = plotform_check()
 sampleMD5 = get_md5()
@@ -110,7 +132,7 @@ fastq_files = out.strip().split()
 index = 0
 failed_samples = {}
 
-for i in range(8):
+for i in range(options.process):
     new_thread = threading.Thread(target=check, args=(checksumCMD, ))
     new_thread.start()
 
