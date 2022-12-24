@@ -21,12 +21,21 @@ function reads_file_process {
     mapping_input_file2=`join_by , ${filteredReads2[@]}`
 }
 function compress_bed {
-    bedFile=${1}
-    col=`head -1 ${bedFile} | awk '{print NF}'`
-    plus=`bc <<< "$col -3"`
-    intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 > ${bedFile}.tmp
-    bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
-    rm ${bedFile} ${bedFile}.tmp
+    if [[ -e ${1} ]]; then
+        bedFile=${1}
+        col=`head -1 ${bedFile} | awk '{print NF}'`
+        plus=`bc <<< "$col -3"`
+        intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 > ${bedFile}.tmp
+        bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b
+        rm ${bedFile} ${bedFile}.tmp
+    fi
+}
+function bedToBigWig {
+    name_=${1}
+    genomeVersion=${2}
+    genomeCoverageBed -bga -i ${name_}.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name_}.bdg && \
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name_}.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name_} && \
+    rm ${name_}.bdg
 }
 
 # ----- parameters -----
@@ -59,12 +68,11 @@ function mapping_filtering {
     fi
 }
 
-
 function piling_up {
     cd 2_signal
     if [[ ! -e ${name}.bw ]]; then
         bamToBed -bedpe -i ../1_mapping/${name}.bam | awk '$1 !~ /_/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3} $1 ~ /NC/{if($2<$5) print $1"\t"$2"\t"$6; else print $1"\t"$5"\t"$3}' | sort -S 5% -k1,1 -k2,2n | uniq > ${name}_fragments.bed && \
-        ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
+        bash ${MY_PATH}/../utilities/nucleosomeShiftPairEnd.sh ${name}_fragments.bed && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments_shift.bdg && \
@@ -74,11 +82,33 @@ function piling_up {
     cd ..
 }
 
+function cut_sites {
+    cd 2_signal
+    if [[ ! -e ${name}_fragments.bed && -e ${name}_fragments.bb ]]; then
+        bigBedToBed ${name}_fragments.bb ${name}_fragments.bed
+    fi
+    bash ${MY_PATH}/../utilities/cutsites_from_fragments.sh ${name}_fragments.bed ${name}
+    for name_ in ${name}_cutsites ${name}_cutsites_plus ${name}_cutsites_minus; do
+        if [[ ! -e ${name_}.bw ]]; then
+            if [[ ! -e ${name_}.bed ]]; then
+                bigBedToBed ${name_}.bb ${name_}.bed
+            fi
+            bedToBigWig ${name_} ${genomeVersion}
+        fi
+    done
+    cd ..
+}
 
 # ----- clearning_up -----
 function clearning_up {
-    rm 1_mapping/${name}.bam
+    if [[ -e 1_mapping/${name}.bam ]]; then
+        rm 1_mapping/${name}.bam
+    fi
     compress_bed 2_signal/${name}_fragments.bed
+    # cutsites
+    for name_ in ${name}_cutsites ${name}_cutsites_plus ${name}_cutsites_minus; do
+        compress_bed ${name_}.bed
+    done
     if [[ $# -eq 8 ]]; then
         rm 1_mapping/${name}_${SNP_strain1}.bam 1_mapping/${name}_${SNP_strain2}.bam
         compress_bed 2_signal/${name}_${SNP_strain1}_fragments.bed ${genomeVersion}
@@ -87,7 +117,8 @@ function clearning_up {
 }
 
 # ----- running -----
-mapping_filtering
+# mapping_filtering
 piling_up
+cut_sites
 clearning_up
 
