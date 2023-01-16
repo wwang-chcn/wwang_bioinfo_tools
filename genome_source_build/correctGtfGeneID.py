@@ -29,8 +29,8 @@ with open(gtfFile) as inputFhd, \
         try:
             attribute[1] = '"'+gene[attribute[1][1:-2]]+'";'
         except KeyError:
-        	transcript = attribute[1][1:-2].rsplit('_',1)
-        	attribute[1] = '"'+gene[transcript[0]]+'_'+transcript[1]+'";'
+            transcript = attribute[1][1:-2].rsplit('_',1)
+            attribute[1] = '"'+gene[transcript[0]]+'_'+transcript[1]+'";'
         outputFhd.write('{}\t{}\n'.format('\t'.join(line[:-1]),' '.join(attribute)))
 
 os.rename('gtf.tmp',gtfFile)
