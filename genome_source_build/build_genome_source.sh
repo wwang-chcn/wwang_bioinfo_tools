@@ -21,14 +21,6 @@ bowtie2-build --threads 16 ${genomeVersion}_main.fa ${genomeVersion}_main
 hisat2-build -p 16 ${genomeVersion}_main.fa ${genomeVersion}_main
 bwa index ${genomeVersion}_main.fa
 
-mkdir -p bismark_index/{raw,main}
-cd bismark_index/raw && ln -s ../../${genomeVersion}.fa .
-cd ../main && ln -s ../../${genomeVersion}_main.fa .
-cd ../..
-bismark_genome_preparation --parallel 8 --single_fasta ./bismark_index/raw
-bismark_genome_preparation --parallel 8 --single_fasta ./bismark_index/main
-
-
 twoBitInfo ${genomeVersion}.2bit ${genomeVersion}.chrom.sizes
 grep -v "_" ${genomeVersion}.chrom.sizes > ${genomeVersion}_main.chrom.sizes
 
