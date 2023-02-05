@@ -2,7 +2,17 @@
 
 # Update: Nov-11-2020
 
-USAGE="<genomeVersion>"
+USAGE="bash $0 <genomeVersion>"
+
+function print_help {
+    echo "USAGE: $USAGE"
+}
+
+if [[ $# -lt 1 ]]; then
+    echo No enought parameters!
+    print_help
+    exit 1
+fi
 
 MY_PATH="`dirname \"$0\"`"
 genomeVersion=${1}
