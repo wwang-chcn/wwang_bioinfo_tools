@@ -82,7 +82,7 @@ function mapping_filtering {
         bamToBed -i 1_mapping/${controlName}.bam | awk '$1 !~ /_/{print $0} $1 ~ /NC/{print $0}' > 2_signal/${controlName}_raw_reads.bed
     fi
     # ChIP sample mapping
-    if [[ ! -e 2_signal/${name}_raw_reads.bed && ! -e 2_signal/${controlName}_raw_reads.bb ]]; then
+    if [[ ! -e 2_signal/${name}_raw_reads.bed && ! -e 2_signal/${name}_raw_reads.bb ]]; then
         if [[ ! -e 1_mapping/${name}.bam ]]; then
             reads_file_process ${ChIPsampleFiles[@]}
             filteredReadsFlag=false
