@@ -110,7 +110,7 @@ function mapping_filtering {
 function peak_calling {
     # get chrom size
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-    # check the exists of reads bed files
+    # check the existences of reads bed files
     if [[ ! -e 2_signal/${controlName}_raw_reads.bed ]]; then
         bigBedToBed 2_signal/${controlName}_raw_reads.bb 2_signal/${controlName}_raw_reads.bed
     fi
