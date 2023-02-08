@@ -141,11 +141,6 @@ function clearning_up {
     compress_bed 2_signal/${controlName}_reads.bed ${genomeVersion}
     compress_bed 2_signal/${name}_raw_reads.bed ${genomeVersion}
     compress_bed 2_signal/${name}_reads.bed ${genomeVersion}
-    # for SNP
-    if [[ $# -eq 10 ]]; then
-        compress_bed 2_signal/${name1}_reads.bed ${genomeVersion}
-        compress_bed 2_signal/${name2}_reads.bed ${genomeVersion}
-    fi
 }
 
 # ----- running -----
