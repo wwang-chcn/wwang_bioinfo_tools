@@ -64,7 +64,7 @@ function mapping_filtering {
             reads_file_process ${ctrsamples[@]}
             filteredReadsFlag=false
             for filteredReadsFile in ${filteredReads[@]}; do
-                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                if [[ ! -e ${filteredReadsFile} ]]; then
                     filteredReadsFlag=true
                     break
                 fi
@@ -87,7 +87,7 @@ function mapping_filtering {
             reads_file_process ${ChIPsampleFiles[@]}
             filteredReadsFlag=false
             for filteredReadsFile in ${filteredReads[@]}; do
-                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                if [[ ! -e ${filteredReadsFile} ]]; then
                     filteredReadsFlag=true
                     break
                 fi

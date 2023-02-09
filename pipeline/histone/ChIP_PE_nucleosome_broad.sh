@@ -71,7 +71,7 @@ function mapping_filtering {
             reads_file_process ${ChIPsampleFiles1[@]} ${ChIPsampleFiles2[@]}
             filteredReadsFlag=false
             for filteredReadsFile in ${filteredReads1[@]} ${filteredReads2[@]}; do
-                if [[ ! -e 0_raw_data/${filteredReadsFile} ]]; then
+                if [[ ! -e ${filteredReadsFile} ]]; then
                     filteredReadsFlag=true
                     break
                 fi
