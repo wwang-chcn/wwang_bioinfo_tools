@@ -57,8 +57,8 @@ cd 5_merged_sample/
 bedToBigWig
 compress_bed ${name}_fragments.bed ${genomeVersion}
 cd ..
-#for i in $@; do
-#    if [[ -e 2_signal/${i}_fragments.bb ]]; then
-#        rm 2_signal/${i}_fragments.bed
-#    fi
-#done
+for i in $@; do
+   if [[ -e 2_signal/${i}_fragments.bb ]]; then
+       rm 2_signal/${i}_fragments.bed
+   fi
+done
