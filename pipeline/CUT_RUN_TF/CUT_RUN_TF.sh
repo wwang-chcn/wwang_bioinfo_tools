@@ -73,6 +73,7 @@ if [[ ${trim_galore_processer} -lt 1 ]]; then trim_galore_processer=1; fi
 
 # ----- mapping & filtering -----
 function mapping_filtering {
+    echo "Step $step mapping & filtering start."
     if [[ ! -e 1_mapping/${name}.bam  ]]; then
         reads_file_process ${ReadsFiles1[@]} ${ReadsFiles2[@]}
         filteredReadsFlag=false
@@ -98,10 +99,13 @@ function mapping_filtering {
     if [[ ! -e 2_signal/${name}_fragments.bed && ! -e 2_signal/${name}_fragments.bb ]]; then
         sort -S 1% -k1,1 -k2,2n 2_signal/${name}_raw_fragments.bed | uniq > 2_signal/${name}_fragments.bed
     fi
+    echo "Step $step end."
+    step=$((step+1))
 }
 
-# ----- basic QC -----
-function basic_QC {
+# ----- fragments_summary -----
+function fragments_summary {
+    echo "Step $step fragments summary start."
     cd 4_basic_QC
     if [[ ! -e ${name}_raw_chromosome_distribution.txt ]]; then
         cut -f 1 ../2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > ${name}_raw_chromosome_distribution.txt
@@ -113,10 +117,13 @@ function basic_QC {
         awk '{print $3-$2}' ../2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > ${name}_fragments_length.txt
     fi
     cd ..
+    echo "Step $step fragments summary end."
+    step=$((step+1))
 }
 
 # ----- cut_sites -----
 function cut_sites {
+    echo "Step $step cut sites start."
     cd 2_signal
     if ([ ! -e ${name}_cutsites.bed ] && [ ! -e ${name}_cutsites.bb ]) || ([ ! -e ${name}_cutsites_plus.bed ] && [ ! -e ${name}_cutsites_plus.bb ]) || ([ ! -e ${name}_cutsites_minus.bed ] && [ ! -e ${name}_cutsites_minus.bb ]); then
         awk '{print $1"\t"$2"\t"$2+1"\tcut_site\t0\t+\n"$1"\t"$3-1"\t"$3"\tcut_site\t0\t-"}' ${name}_fragments.bed | sort -k1,1 -k2,2n > ${name}_cutsites.bed
@@ -129,12 +136,18 @@ function cut_sites {
         fi
     done
     cd ..
+    echo "Step $step cut sites end."
+    step=$((step+1))
 }
 
 # ----- pileup -----
 function piling_up {
+    echo "Step $step piling up start."
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal
+        if [[ ! -e ${name}_fragments.bed ]]; then
+            bigBedToBed ${name}_fragments.bb ${name}_fragments.bed
+        fi
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ../4_basic_QC/${name}_fragments_length.txt`
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
@@ -145,17 +158,20 @@ function piling_up {
         cd ..
     fi &
     wait
+    echo "Step $step piling up end."
+    step=$((step+1))
 }
 
 # ----- short fragments -----
 function short_fragments {
+    echo "Step $step short fragments start."
     if [[ ! -e 2_signal/${name}_OCR.bw ]]; then
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ../4_basic_QC/${name}_fragments_length.txt`
         awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
         chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
         macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_MACS.out
-        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length}
+        ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
         n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_OCR_fragments_shift.bdg && \
@@ -163,20 +179,26 @@ function short_fragments {
         rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
         cd ..
     fi
+    echo "Step $step short fragments end."
+    step=$((step+1))
 }
 
 # ----- clearning_up -----
 function clearning_up {
-    # rm 1_mapping/${name}.bam
+    echo "Step $step clearning up start."
+    rm 1_mapping/${name}.bam
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_OCR_fragments.bed ${genomeVersion}
+    echo "Step $step clearning up end."
+    step=$((step+1))
 }
 
 # ----- running -----
+step=1
 mapping_filtering
-basic_QC
-cut_sites
+fragments_summary
+# cut_sites
 piling_up
 short_fragments
 clearning_up
