@@ -43,12 +43,15 @@ IFS=',' read -r -a readsFiles2 <<< ${reads2}
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_methylation_value 
 
 reads_file_process ${readsFiles1[@]} ${readsFiles2[@]}
-trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn
-zcat ${filteredReads1[@]} | gzip - > 0_raw_data/${name}_1.fastq.gz &
-zcat ${filteredReads2[@]} | gzip - > 0_raw_data/${name}_2.fastq.gz &
-wait
-bsmap -p ${processer} -a 0_raw_data/${name}_1.fastq.gz -b 0_raw_data/${name}_2.fastq.gz -d ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa -R -n 1 -o 1_mapping/${name}.bam 2>&1 >>/dev/null | tee 1_mapping/Mapping_${name}.log
-samtools sort -@ $((${processer}-1)) 1_mapping/${name}.bam -T 1_mapping/${name}.tmp -o 1_mapping/${name}_sorted.bam
+if [[ ! -e 1_mapping/${name}_sorted.bam  ]]; then
+    trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" --paired ${trim_galore_input[@]} --trim-n -j 4 -o 0_raw_data/ --no_report_file --suppress_warn
+    zcat ${filteredReads1[@]} | gzip - > 0_raw_data/${name}_1.fastq.gz &
+    zcat ${filteredReads2[@]} | gzip - > 0_raw_data/${name}_2.fastq.gz &
+    wait
+    bsmap -p ${processer} -a 0_raw_data/${name}_1.fastq.gz -b 0_raw_data/${name}_2.fastq.gz -d ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa -R -n 1 -o 1_mapping/${name}.bam 2>&1 >>/dev/null | tee 1_mapping/Mapping_${name}.log
+    samtools sort -@ $((${processer}-1)) 1_mapping/${name}.bam -T 1_mapping/${name}.tmp -o 1_mapping/${name}_sorted.bam
+    rm ${filteredReads1[@]} ${filteredReads2[@]} 0_raw_data/${name}_1.fastq.gz 0_raw_data/${name}_2.fastq.gz 1_mapping/${name}.bam
+fi
 mcall --skipRandomChrom 1 -p ${processer} -m 1_mapping/${name}_sorted.bam --outputDir 2_methylation_value -r ~/source/bySpecies/${genomeVersion}/${genomeVersion}.fa 2>&1 >>/dev/null | tee 2_methylation_value/Mcall_${name}.log
 mv 1_mapping/${name}_sorted.bam.G.bed 1_mapping/${name}_sorted.bam.HG.bed 1_mapping/${name}_sorted.bam_stat.txt 2_methylation_value
-rm ${filteredReads1[@]} ${filteredReads2[@]} 0_raw_data/${name}_1.fastq.gz 0_raw_data/${name}_2.fastq.gz 1_mapping/${name}.bam
+
