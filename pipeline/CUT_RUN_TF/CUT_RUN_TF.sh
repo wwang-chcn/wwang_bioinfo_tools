@@ -30,7 +30,7 @@ function compress_bed {
         intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp && \
         bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b && \
         rm ${bedFile}.tmp # && \
-        # rm ${bedFile}
+        rm ${bedFile}
     fi
 }
 function bedToBigWig {
@@ -198,7 +198,7 @@ function clearning_up {
 step=1
 mapping_filtering
 fragments_summary
-# cut_sites
+cut_sites
 piling_up
 short_fragments
 clearning_up
