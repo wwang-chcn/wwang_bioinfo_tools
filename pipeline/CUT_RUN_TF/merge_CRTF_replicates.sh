@@ -7,13 +7,13 @@ function print_help {
 }
 
 function bedToBigWig {
-    fragment_length=`awk 'BEGIN{s=0} {s+=$3-$2} END{printf "%f", s/NR}' ${name}_fragments.bed`
-    ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
-    n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "`
+    fragment_length=`awk 'BEGIN{s=0} {s+=$3-$2} END{printf "%f", s/NR}' ${1}_fragments.bed`
+    ${MY_PATH}/../utilities/ShiftPairEnd.sh ${1}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
+    n=`wc -l ${1}_fragments_shift.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
-    genomeCoverageBed -bga -scale $c -i ${name}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_fragments_shift.bdg
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
-    rm ${name}_fragments_shift.bdg ${name}_fragments_shift.bed
+    genomeCoverageBed -bga -scale $c -i ${1}_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${1}_fragments_shift.bdg
+    ${MY_PATH}/../utilities/bdg2bw.sh ${1}_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${1}
+    rm ${1}_fragments_shift.bdg ${1}_fragments_shift.bed
 }
 
 function compress_bed {
@@ -40,6 +40,7 @@ name=${1}
 genomeVersion=${2}
 shift 2
 
+# ----- OCR fragments -----
 # get fragment files
 reads_file_array=()
 for i in $@; do
@@ -54,9 +55,37 @@ for i in $@; do
 done
 
 # merge fragment files
+cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_OCR_fragments.bed
+cd 4_merged_sample/
+bedToBigWig ${1} &
+macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed -n ${name}_OCR -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_OCR_MACS.out &
+wait
+compress_bed ${name}_OCR_fragments.bed ${genomeVersion}
+cd ..
+for i in $@; do
+   if [[ -e 2_signal/${i}_OCR_fragments.bb ]]; then
+       rm 2_signal/${i}_OCR_fragments.bed
+   fi
+done
+
+# ----- fragments -----
+# get fragment files
+reads_file_array=()
+for i in $@; do
+    if [[ ! -e 2_signal/${i}_fragments.bed ]]; then
+        if [[ ! -e 2_signal/${i}_fragments.bb ]]; then
+            echo "fragments file for sample ${i} do not exist, exit!"
+            exit 1
+        fi
+        bigBedToBed 2_signal/${i}_fragments.bb 2_signal/${i}_fragments.bed
+    fi
+    fragments_array+=("2_signal/${i}_fragments.bed")
+done
+
+# merge fragment files
 cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_fragments.bed
 cd 4_merged_sample/
-bedToBigWig &
+bedToBigWig ${name} &
 macs2 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out &
 wait
 compress_bed ${name}_fragments.bed ${genomeVersion}
