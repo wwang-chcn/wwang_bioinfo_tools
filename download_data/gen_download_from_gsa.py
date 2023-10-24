@@ -50,7 +50,7 @@ def prepare_optparser() -> OptionParser:
         type="string",
         action='append',
         help=
-        "Required. Accession number. Multiple accession numbers can be input as -a accession_number_1 -aaccession_number_2."
+        "Required. Accession number. Multiple accession numbers can be input as -a accession_number_1 -accession_number_2."
     )
     optparser.add_option("-e",
                          "--execute",
