@@ -17,7 +17,9 @@ fi
 MY_PATH="`dirname \"$0\"`"
 genomeVersion=${1}
 
-rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/bigZips/${genomeVersion}.2bit .
+if [[ ! -e ${genomeVersion}.2bit ]]; then
+    rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/bigZips/${genomeVersion}.2bit .
+fi
 twoBitToFa ${genomeVersion}.2bit ${genomeVersion}.fa
 
 python ${MY_PATH}/getMainFa.py ${genomeVersion}
@@ -37,7 +39,9 @@ grep -v "_" ${genomeVersion}.chrom.sizes > ${genomeVersion}_main.chrom.sizes
 
 # annotation
 # refGene
-rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/refGene.txt.gz ${genomeVersion}.refGene.txt.gz
+if [[ ! -e ${genomeVersion}.refGene.txt.gz ]]; then
+    rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/refGene.txt.gz ${genomeVersion}.refGene.txt.gz
+fi
 gunzip ${genomeVersion}.refGene.txt.gz
 cut -f 2-11 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePred
 cut -f 2-16 ${genomeVersion}.refGene.txt > ${genomeVersion}.refGene.genePredExt
@@ -46,7 +50,9 @@ genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
 
 
 # ensGene
-rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensGene.txt.gz ${genomeVersion}.ensGene.txt.gz
+if [[ ! -e ${genomeVersion}.ensGene.txt.gz ]]; then
+    rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensGene.txt.gz ${genomeVersion}.ensGene.txt.gz
+fi
 if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
     gunzip ${genomeVersion}.ensGene.txt.gz
     cut -f 2-11 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePred
