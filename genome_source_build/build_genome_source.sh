@@ -53,7 +53,7 @@ genePredToBed ${genomeVersion}.refGene.genePredExt ${genomeVersion}.refGene.bed
 if [[ ! -e ${genomeVersion}.ensGene.txt.gz ]]; then
     rsync -avzP rsync://hgdownload.soe.ucsc.edu/goldenPath/${genomeVersion}/database/ensGene.txt.gz ${genomeVersion}.ensGene.txt.gz
 fi
-if [[ -e ${genomeVersion}.ensGene.txt.gz ]]; then
+if [[ -s ${genomeVersion}.ensGene.txt.gz ]]; then
     gunzip ${genomeVersion}.ensGene.txt.gz
     cut -f 2-11 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePred
     cut -f 2-16 ${genomeVersion}.ensGene.txt > ${genomeVersion}.ensGene.genePredExt
