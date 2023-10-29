@@ -117,7 +117,7 @@ function clearning_up {
 }
 
 # ----- running -----
-# mapping_filtering
+mapping_filtering
 piling_up
 cut_sites
 clearning_up
