@@ -87,9 +87,9 @@ function mapping_filtering {
             trim_galore --fastqc --fastqc_args "--outdir 0_raw_data/FastQC_OUT --nogroup -t ${processer} -q" -j ${trim_galore_processer} --paired ${trim_galore_input[@]} --trim-n -o 0_raw_data/ --suppress_warn
         fi
         if [[ "$main_chrom" = true ]]; then
-            (bowtie2 -p ${processer} --mm -x /mnt/Storage/home/wangwen/source/bySpecies/${genomeVersion}/${genomeVersion}_main --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/Mapping_${name}.log
+            (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/Mapping_${name}.log
         else
-            (bowtie2 -p ${processer} --mm -x /mnt/Storage/home/wangwen/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/Mapping_${name}.log
+            (bowtie2 -p ${processer} --mm -x ~/source/bySpecies/${genomeVersion}/${genomeVersion} --no-mixed  --no-discordant --no-unal -1 ${mapping_input_file1} -2 ${mapping_input_file2} | samtools view -@ $((${processer}-1)) -bSq 30 > 1_mapping/${name}.bam) 2> 1_mapping/Mapping_${name}.log
         fi
         rm ${filteredReads1[@]} ${filteredReads2[@]}
     fi
