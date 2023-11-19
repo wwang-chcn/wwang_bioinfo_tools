@@ -57,7 +57,7 @@ done
 # merge fragment files
 cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 4_merged_sample/${name}_OCR_fragments.bed
 cd 4_merged_sample/
-bedToBigWig ${1} &
+bedToBigWig ${name}_OCR &
 macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed -n ${name}_OCR -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_OCR_MACS.out &
 wait
 compress_bed ${name}_OCR_fragments.bed ${genomeVersion}
