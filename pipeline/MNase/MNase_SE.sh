@@ -33,7 +33,7 @@ processer=${2}
 genomeVersion=${3}
 reads=${4}
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a readsFile <<< ${reads}
 

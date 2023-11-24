@@ -46,7 +46,7 @@ genomeVersion=${2}
 normalizationFactor_handling ${3}
 
 # get MY_PATH (/wwang_bioinfo_tools/pipeline/utilities)
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 #----- pileup -----
 

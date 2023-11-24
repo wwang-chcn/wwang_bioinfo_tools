@@ -51,7 +51,7 @@ case $6 in
     * ) print_help; exit 1;;
 esac
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
 IFS=',' read -r -a readsFiles2 <<< ${reads2}

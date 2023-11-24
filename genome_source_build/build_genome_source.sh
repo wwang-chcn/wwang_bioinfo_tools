@@ -14,7 +14,7 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 genomeVersion=${1}
 
 if [[ ! -e ${genomeVersion}.2bit ]]; then

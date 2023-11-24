@@ -35,7 +35,7 @@ genomeVersion=${3}
 reads1=${4}
 reads2=${5}
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
 IFS=',' read -r -a readsFiles2 <<< ${reads2}

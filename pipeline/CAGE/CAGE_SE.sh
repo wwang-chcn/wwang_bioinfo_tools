@@ -44,7 +44,7 @@ reads=${4}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_signal
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a readsFiles <<< ${reads}
 

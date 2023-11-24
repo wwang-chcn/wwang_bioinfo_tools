@@ -49,7 +49,7 @@ case $7 in
     * ) print_help; exit 1;;
 esac
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a ChIPsampleFiles <<< ${ChIPsamples}
 IFS=',' read -r -a ctrsamples <<< ${ctrsamples}

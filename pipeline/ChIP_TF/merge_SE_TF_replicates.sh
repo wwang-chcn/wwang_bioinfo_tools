@@ -30,7 +30,7 @@ if [[ $# -lt 3 ]]; then
     exit 1
 fi
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 mkdir -p 4_merged_sample/
 

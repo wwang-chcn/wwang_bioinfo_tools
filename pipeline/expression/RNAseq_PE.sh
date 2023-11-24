@@ -52,7 +52,7 @@ reads2=${5}
 
 mkdir -p 0_raw_data/FastQC_OUT 1_mapping 2_expression_value 3_signal 4_basic_QC
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a readsFiles1 <<< ${reads1}
 IFS=',' read -r -a readsFiles2 <<< ${reads2}

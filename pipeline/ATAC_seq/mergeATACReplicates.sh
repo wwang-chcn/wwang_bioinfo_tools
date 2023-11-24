@@ -66,7 +66,7 @@ if [[ $# -gt 4 ]]; then
     exit 1
 fi
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 mkdir -p 3_merged_signal/
 

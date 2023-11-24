@@ -61,7 +61,7 @@ case $6 in
 esac
 
 
-MY_PATH="`dirname \"$0\"`"
+MY_PATH="`readlink -f $(dirname \"$0\")`"
 
 IFS=',' read -r -a ReadsFiles1 <<< ${reads1}
 IFS=',' read -r -a ReadsFiles2 <<< ${reads2}
