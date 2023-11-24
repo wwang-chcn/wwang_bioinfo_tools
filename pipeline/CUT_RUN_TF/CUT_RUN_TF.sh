@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 function print_help {
     echo "$0 <name> <processer> <genomeVersion> <reads1,+> <reads2,+> <main_chrom>"
