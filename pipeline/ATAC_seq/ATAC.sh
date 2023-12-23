@@ -92,15 +92,7 @@ function pileup {
     cut -f 1-3 ${name}_raw_fragments.bed | uniq > ${name}_fragments.bed
     # fragments length
     awk '{print $3-$2}' ${name}_fragments.bed | sort -S 1% | uniq -c | sort -k2,2g -S 1% | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > ${name}_fragments_length.txt &
-    
-    # generate pesudo single-end reads
-    awk 'BEGIN{srand(1007)} {if(rand()<0.5) print $1"\t"$2"\t"$2+50; else if($3-50<0) print $1"\t0\t"$3; else print $1"\t"$3-50"\t"$3}' ${name}_fragments.bed | awk '{if($2<0) print $1"\t0\t"$3; else print $0}' | sort -k1,1 -k2,2g -S 1% > ${name}_uniq_SE_reads.bed && \
-    n=`wc -l ${name}_uniq_SE_reads.bed | cut -f 1 -d " "` && \
-    c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_SE_reads.bdg && \
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_SE_reads && \
-    rm ${name}_uniq_SE_reads.bdg &
-    wait
+    ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name} && \
     # Warning: using gawk. default awk in macOS is not gawk
     cd ..
 }
@@ -108,30 +100,23 @@ function pileup {
 function OCR {
     cd 2_signal
     mkdir -p OCR
-    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2<=100) {if(rand()<0.5) print $1"\t"$2"\t"$2+50"\tr"NR"\t0\t+"; else if($3-50<0) print $1"\t0\t"$3"\tr"NR"\t0\t-"; else print $1"\t"$3-50"\t"$3"\tr"NR"\t0\t-"}}' | sort -k1,1 -k2,2g > OCR/${name}_uniq_OCR_SE_reads.bed && \
+    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2<=100) {if(rand()<0.5) print $0}}' | sort -k1,1 -k2,2g > OCR/${name}_OCR_fragments.bed && \
     
     cd OCR && \
-    n=`wc -l ${name}_uniq_OCR_SE_reads.bed | cut -f 1 -d " "` && \
-    c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_OCR_SE_reads.bdg && \
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_OCR_SE_reads && \
-    rm ${name}_uniq_OCR_SE_reads.bdg &
-    wait
+    ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_OCR_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_OCR && \
+    cd ..
     cd ..
 }
 
 function nucleosome {
     cd 2_signal
     mkdir -p nucleosome
-    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2>=180) {if(rand()<0.5) print $1"\t"$2"\t"$2+50"\tr"NR"\t0\t+"; else if($3-50<0) print $1"\t0\t"$3"\tr"NR"\t0\t-"; else print $1"\t"$3-50"\t"$3"\tr"NR"\t0\t-"}}' | sort -k1,1 -k2,2g > nucleosome/${name}_uniq_nucleosome_SE_reads.bed && \
+    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2>=180) {if(rand()<0.5) print $1"\t"$2"\t"$2+50"\tr"NR"\t0\t+"; else if($3-50<0) print $1"\t0\t"$3"\tr"NR"\t0\t-"; else print $1"\t"$3-50"\t"$3"\tr"NR"\t0\t-"}}' | sort -k1,1 -k2,2g > nucleosome/${name}_nucleosome_fragments.bed && \
     
     cd nucleosome && \
-    n=`wc -l ${name}_uniq_nucleosome_SE_reads.bed | cut -f 1 -d " "` && \
-    c=`bc -l <<< "1000000 / $n"` && \
-    genomeCoverageBed -bga -scale $c -i ${name}_uniq_nucleosome_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_uniq_nucleosome_SE_reads.bdg && \
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_uniq_nucleosome_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_uniq_nucleosome_SE_reads && \
-    rm ${name}_uniq_nucleosome_SE_reads.bdg &
+    ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_nucleosome_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_nucleosome && \
     wait
+    cd ..
     cd ..
 }
 
@@ -141,9 +126,9 @@ function clearning_up {
     rm 1_mapping/${name}.bam
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
-    compress_bed 2_signal/${name}_uniq_SE_reads.bed ${genomeVersion}
-    compress_bed 2_signal/OCR/${name}_uniq_OCR_SE_reads.bed ${genomeVersion}
-    compress_bed 2_signal/nucleosome/${name}_uniq_nucleosome_SE_reads.bed ${genomeVersion}
+    compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
+    compress_bed 2_signal/OCR/${name}_OCR_fragments.bed ${genomeVersion}
+    compress_bed 2_signal/nucleosome/${name}_nucleosome_fragments.bed ${genomeVersion}
 }
 
 
