@@ -100,7 +100,7 @@ function pileup {
 function OCR {
     cd 2_signal
     mkdir -p OCR
-    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2<=100) {if(rand()<0.5) print $0}}' | sort -k1,1 -k2,2g > OCR/${name}_OCR_fragments.bed && \
+    cat ${name}_fragments.bed | awk '{if($3-$2<=100) print $0}' | sort -k1,1 -k2,2g > OCR/${name}_OCR_fragments.bed && \
     
     cd OCR && \
     ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_OCR_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_OCR && \
@@ -111,7 +111,7 @@ function OCR {
 function nucleosome {
     cd 2_signal
     mkdir -p nucleosome
-    cat ${name}_fragments.bed | awk 'BEGIN{srand(1007)} {if($3-$2>=180) {if(rand()<0.5) print $1"\t"$2"\t"$2+50"\tr"NR"\t0\t+"; else if($3-50<0) print $1"\t0\t"$3"\tr"NR"\t0\t-"; else print $1"\t"$3-50"\t"$3"\tr"NR"\t0\t-"}}' | sort -k1,1 -k2,2g > nucleosome/${name}_nucleosome_fragments.bed && \
+    cat ${name}_fragments.bed | awk '{if($3-$2>=180) print $0' | sort -k1,1 -k2,2g > nucleosome/${name}_nucleosome_fragments.bed && \
     
     cd nucleosome && \
     ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_nucleosome_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_nucleosome && \
