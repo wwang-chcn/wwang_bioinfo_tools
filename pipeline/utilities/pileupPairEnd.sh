@@ -9,7 +9,7 @@ function print_help {
 awk '{
     mid=($2+$3)/2
     fraglen=$3-$2
-    printf $1"\t%d\t%d\t%s\n", mid-fraglen/2, mid+fraglen/2
+    printf $1"\t%d\t%d\n", mid-fraglen/2, mid+fraglen/2
 }' $1 | awk '{if($2>=0) print; else print $1"\t0\t"$3}' | sort -k1,1 -k2,2n | intersectBed -a - -b <(awk '{print $1"\t0\t"$2}' $2) -wa -f 1.00 > ${1::(${#1}-4)}_shift.bed && \
 n=`wc -l ${1::(${#1}-4)}_shift.bed | cut -f 1 -d " "` && \
 c=`bc -l <<< "1000000 / $n"` && \
