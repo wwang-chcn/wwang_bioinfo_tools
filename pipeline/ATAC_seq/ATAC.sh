@@ -111,7 +111,7 @@ function OCR {
 function nucleosome {
     cd 2_signal
     mkdir -p nucleosome
-    cat ${name}_fragments.bed | awk '{if($3-$2>=180) print $0' | sort -k1,1 -k2,2g > nucleosome/${name}_nucleosome_fragments.bed && \
+    cat ${name}_fragments.bed | awk '{if($3-$2>=180) print $0}' | sort -k1,1 -k2,2g > nucleosome/${name}_nucleosome_fragments.bed && \
     
     cd nucleosome && \
     ${MY_PATH}/../utilities/pileupPairEnd.sh ${name}_nucleosome_fragments.bed ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_nucleosome && \
