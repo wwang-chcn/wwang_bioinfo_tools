@@ -126,7 +126,6 @@ function clearning_up {
     rm 1_mapping/${name}.bam
     compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
-    compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
     compress_bed 2_signal/OCR/${name}_OCR_fragments.bed ${genomeVersion}
     compress_bed 2_signal/nucleosome/${name}_nucleosome_fragments.bed ${genomeVersion}
 }
