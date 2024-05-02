@@ -144,9 +144,15 @@ def main():
                 fragment, 1 - 1.0 * fragment / raw_fragment
             ])  # unique nuclear fragments \t duplicate level
 
+            OCR_fragment_file = f'./2_signal/OCR/{sample}_OCR_fragments.bb'
+            if not os.path.isfile(OCR_fragment_file):
+                sys.stdout.write(
+                    f'Error! No OCR fragment file: {OCR_fragment_file}\n'
+                )
+                sys.exit(1)
             OCR_fragment = int(
                 subprocess.check_output(
-                    f'''bigBedInfo 2_signal/OCR/{sample}_uniq_OCR_SE_reads.bb | grep itemCount | cut -d " " -f 2 | sed -s 's/,//g' ''',
+                    f'''bigBedInfo {OCR_fragment_file} | grep itemCount | cut -d " " -f 2 | sed -s 's/,//g' ''',
                     shell=True).decode().strip())
             output_line.append(OCR_fragment)  # Effective Fragments
 
