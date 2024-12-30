@@ -2,7 +2,7 @@
 
 ## Softwares
 
-- Python2 (2.7) & Python3 (≥3.6)
+- Python3 (≥3.6)
 - Cutadapt (≥3.3)
 - FastQC (≥0.11.4)
 - TrimGalore (≥0.6.4)
@@ -11,7 +11,7 @@
 - SAMtools (≥1.6)
 - BEDtools (≥2.27.1)
 - GNU Awk (≥4.1.3)
-- MACS2 (2.1.1.20160309)
+- MACS3 (>=3.0.0)
 
 ## Input & source files
 

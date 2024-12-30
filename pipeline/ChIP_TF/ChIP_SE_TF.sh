@@ -81,7 +81,7 @@ function mapping_filtering {
 # ----- macs -----
 function peak_calling {
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-    macs2 callpeak -f BED -t 2_signal/${name}_reads.bed --outdir 3_peak -n ${name} -g ${chromsize} -q 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
+    macs3 callpeak -f BED -t 2_signal/${name}_reads.bed --outdir 3_peak -n ${name} -g ${chromsize} -q 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
 }
 
 

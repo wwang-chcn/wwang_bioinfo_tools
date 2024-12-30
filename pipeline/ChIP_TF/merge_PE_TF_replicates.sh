@@ -57,7 +57,7 @@ done
 cat ${fragments_array[@]} | sort -S 5% -k1,1 -k2,2n > 4_merged_sample/${name}_fragments.bed
 cd 4_merged_sample/
 bedToBigWig &
-macs2 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out &
+macs3 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out &
 wait
 compress_bed ${name}_fragments.bed ${genomeVersion}
 cd ..

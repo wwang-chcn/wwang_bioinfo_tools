@@ -80,7 +80,7 @@ wait
 
 # peak calling, piling up, & compress
 cd 4_merged_sample/
-macs2 callpeak -f BED -t ${name}_reads.bed -c ${controlName}_reads.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out
+macs3 callpeak -f BED -t ${name}_reads.bed -c ${controlName}_reads.bed -n ${name} -g 1.4e9 -q 0.01 --outdir ./ --keep-dup all 2>&1 >>/dev/null | tee ${name}_MACS.out
 bedToBigWig
 compress_bed ${name}_reads.bed ${genomeVersion} &
 compress_bed ${controlName}_reads.bed ${genomeVersion} &

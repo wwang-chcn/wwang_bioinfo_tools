@@ -170,7 +170,7 @@ function short_fragments {
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ../4_basic_QC/${name}_fragments_length.txt`
         awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
         chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-        macs2 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_MACS.out
+        macs3 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_MACS.out
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
         n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \

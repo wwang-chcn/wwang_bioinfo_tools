@@ -119,7 +119,7 @@ function peak_calling {
     fi
     # peak calling
     if [[ ! -e 3_peak/${name}_peaks.xls ]]; then
-        macs2 callpeak -f BED -t 2_signal/${name}_raw_reads.bed -c 2_signal/${controlName}_raw_reads.bed --outdir 3_peak -n ${name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --broad-cutoff 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
+        macs3 callpeak -f BED -t 2_signal/${name}_raw_reads.bed -c 2_signal/${controlName}_raw_reads.bed --outdir 3_peak -n ${name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --broad-cutoff 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
     fi
 }
 

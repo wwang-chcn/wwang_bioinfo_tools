@@ -96,7 +96,7 @@ function peak_calling {
     if [[ ! -e 2_signal/${name}_raw_fragments.bed ]]; then
         bigBedToBed 2_signal/${name}_raw_fragments.bb 2_signal/${name}_raw_fragments.bed
     fi
-    macs2 callpeak -f BEDPE -t 2_signal/${name}_raw_fragments.bed --outdir 3_peak -n ${name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --broad-cutoff 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
+    macs3 callpeak -f BEDPE -t 2_signal/${name}_raw_fragments.bed --outdir 3_peak -n ${name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --broad-cutoff 0.05 2>&1 >>/dev/null | tee 3_peak/${name}_MACS.out
 }
 
 # ----- pileup -----

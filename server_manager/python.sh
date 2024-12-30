@@ -6,7 +6,7 @@ sudo apt update
 sudo apt install python-setuptools python-pip python-numpy python-scipy python-pandas
 sudo apt install default-libmysqlclient-dev # require by mysql-python
 sudo pip install cutadapt # required by trim_galore
-sudo pip install Cython # required by MACS2
+sudo pip install Cython # required by MACS
 sudo pip install pysam # required by HiC-Pro
 sudo pip install hmmlearn # dependency: scikit_learn-0.20.2
 sudo pip install beautifulsoup
