@@ -21,18 +21,6 @@ function reads_file_process {
     for readFile in ${sampleReadFiles2[@]}; do splitFileName=`echo ${readFile%.*}`; splitFileName=`echo ${splitFileName%.*}`; filteredReads2+=(0_raw_data/${splitFileName}_val_2.fq.gz); done
     mapping_input_file2=`join_by , ${filteredReads2[@]}`
 }
-function compress_bed {
-    bedFile=${1}
-    genomeVersion=${2}
-    if [[ ! -e ${bedFile::(${#bedFile}-2)}b ]]; then
-        col=`head -1 ${bedFile} | awk '{print NF}'` && \
-        plus=`bc <<< "$col -3"` && \
-        intersectBed -a ${bedFile} -b <(awk '{print $1"\t0\t"$2}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes) -wa -f 1.00 | sort -k1,1 -k2,2n > ${bedFile}.tmp && \
-        bedToBigBed -type=bed3+${plus} ${bedFile}.tmp ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes ${bedFile::(${#bedFile}-2)}b && \
-        rm ${bedFile}.tmp # && \
-        rm ${bedFile}
-    fi
-}
 function bedToBigWig {
     name_=${1}
     genomeVersion=${2}
@@ -62,6 +50,7 @@ esac
 
 
 MY_PATH="`readlink -f $(dirname \"$0\")`"
+UTILITIES_DIR=${MY_PATH}/../utilities
 
 IFS=',' read -r -a ReadsFiles1 <<< ${reads1}
 IFS=',' read -r -a ReadsFiles2 <<< ${reads2}
@@ -108,12 +97,15 @@ function fragments_summary {
     echo "Step $step fragments summary start."
     cd 4_basic_QC
     if [[ ! -e ${name}_raw_chromosome_distribution.txt ]]; then
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_raw_fragments.bed && \  # assume there will be either ${name}_raw_fragments.bed or ${name}_raw_fragments.bb
         cut -f 1 ../2_signal/${name}_raw_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > ${name}_raw_chromosome_distribution.txt
     fi
     if [[ ! -e ${name}_chromosome_distribution.txt ]]; then
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_fragments.bed  # assume there will be either ${name}_fragments.bed or ${name}_fragments.bb
         cut -f 1 ../2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k1,1rg | awk 'BEGIN{print "chromosome\tnumber"} {print $2"\t"$1}' > ${name}_chromosome_distribution.txt
     fi
     if [[ ! -e ${name}_fragments_length.txt ]]; then
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_fragments.bed  # assume there will be either ${name}_fragments.bed or ${name}_fragments.bb
         awk '{print $3-$2}' ../2_signal/${name}_fragments.bed | sort -S 1% | uniq -c | sort -S 1% -k2,2g | awk 'BEGIN{print "fragment_length\tnumber"} {print $2"\t"$1}' > ${name}_fragments_length.txt
     fi
     cd ..
@@ -126,6 +118,7 @@ function cut_sites {
     echo "Step $step cut sites start."
     cd 2_signal
     if ([ ! -e ${name}_cutsites.bed ] && [ ! -e ${name}_cutsites.bb ]) || ([ ! -e ${name}_cutsites_plus.bed ] && [ ! -e ${name}_cutsites_plus.bb ]) || ([ ! -e ${name}_cutsites_minus.bed ] && [ ! -e ${name}_cutsites_minus.bb ]); then
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_fragments.bed  # assume there will be either ${name}_fragments.bed or ${name}_fragments.bb
         awk '{print $1"\t"$2"\t"$2+1"\tcut_site\t0\t+\n"$1"\t"$3-1"\t"$3"\tcut_site\t0\t-"}' ${name}_fragments.bed | sort -k1,1 -k2,2n > ${name}_cutsites.bed
         awk '{if($6=="+") print $0}' ${name}_cutsites.bed | sort -k1,1 -k2,2n > ${name}_cutsites_plus.bed
         awk '{if($6=="-") print $0}' ${name}_cutsites.bed | sort -k1,1 -k2,2n > ${name}_cutsites_minus.bed
@@ -145,9 +138,7 @@ function piling_up {
     echo "Step $step piling up start."
     if [[ ! -e 2_signal/${name}.bw ]]; then
         cd 2_signal
-        if [[ ! -e ${name}_fragments.bed ]]; then
-            bigBedToBed ${name}_fragments.bb ${name}_fragments.bed
-        fi
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_fragments.bed  # assume there will be either ${name}_fragments.bed or ${name}_fragments.bb
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{s+=$1*$2;c+=$2} END{printf "%f", s/c}' ../4_basic_QC/${name}_fragments_length.txt`
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes && \
         n=`wc -l ${name}_fragments_shift.bed | cut -f 1 -d " "` && \
@@ -165,10 +156,13 @@ function piling_up {
 # ----- peak calling -----
 function peak_calling {
     echo "Step $step peak calling start."
-    cd 3_peak
-    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-    macs3 callpeak -f BEDPE -t ../2_signal/${name}_fragments.bed  --outdir ./ -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ./${name}_MACS.out
-    cd ..
+    if [[ ! -e 3_peak/${name}_MACS.out ]]; then
+        cd 3_peak
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_fragments.bed && \  # assume there will be either ${name}_fragments.bed or ${name}_fragments.bb
+        chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
+        macs3 callpeak -f BEDPE -t ../2_signal/${name}_fragments.bed  --outdir ./ -n ${name} -g ${chromsize} 2>&1 >>/dev/null | tee ./${name}_MACS.out
+        cd ..
+    fi
     echo "Step $step peak calling end."
     step=$((step+1))
 }
@@ -179,15 +173,20 @@ function short_fragments {
     if [[ ! -e 2_signal/${name}_OCR.bw ]]; then
         cd 2_signal
         fragment_length=`awk 'BEGIN{s=0;c=0} NR>1{if($1<=120) {s+=$1*$2;c+=$2}} END{printf "%d", s/c}' ../4_basic_QC/${name}_fragments_length.txt`
-        awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed
-        chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-        macs3 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name}_OCR -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_OCR_MACS.out
+        awk '{if($3-$2<=120) print}' ${name}_fragments.bed > ${name}_OCR_fragments.bed  # assume there will be either ${name}_OCR_fragments.bed or ${name}_OCR_fragments.bb
         ${MY_PATH}/../utilities/ShiftPairEnd.sh ${name}_OCR_fragments.bed ${fragment_length} ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes
         n=`wc -l ${name}_OCR_fragments_shift.bed | cut -f 1 -d " "` && \
         c=`bc -l <<< "1000000 / $n"` && \
         genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments_shift.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes | awk '{if($3>$2) print$0}' > ${name}_OCR_fragments_shift.bdg && \
         ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments_shift.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}_OCR && \
         rm ${name}_OCR_fragments_shift.bdg ${name}_OCR_fragments_shift.bed
+        cd ..
+    fi
+    if [[ ! -e 3_peak/${name}_OCR_MACS.out ]]; then
+        cd 2_signal
+        ${UTILITIES_DIR}/bedCheck.sh ${name}_OCR_fragments.bed && \  # assume there will be either ${name}_OCR_fragments.bed or ${name}_OCR_fragments.bb
+        chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
+        macs3 callpeak -f BEDPE -t ${name}_OCR_fragments.bed  --outdir ../3_peak -n ${name}_OCR -g ${chromsize} 2>&1 >>/dev/null | tee ../3_peak/${name}_OCR_MACS.out
         cd ..
     fi
     echo "Step $step short fragments end."
@@ -198,9 +197,9 @@ function short_fragments {
 function clearning_up {
     echo "Step $step clearning up start."
     rm 1_mapping/${name}.bam
-    compress_bed 2_signal/${name}_raw_fragments.bed ${genomeVersion}
-    compress_bed 2_signal/${name}_fragments.bed ${genomeVersion}
-    compress_bed 2_signal/${name}_OCR_fragments.bed ${genomeVersion}
+    ${UTILITIES_DIR}/compressBed.sh 2_signal/${name}_raw_fragments.bed ${genomeVersion}
+    ${UTILITIES_DIR}/compressBed.sh 2_signal/${name}_fragments.bed ${genomeVersion}
+    ${UTILITIES_DIR}/compressBed.sh 2_signal/${name}_OCR_fragments.bed ${genomeVersion}
     echo "Step $step clearning up end."
     step=$((step+1))
 }
