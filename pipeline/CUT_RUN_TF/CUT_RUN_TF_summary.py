@@ -8,23 +8,32 @@ import sys
 import csv
 import subprocess
 
+from typing import Optional
+
 
 # ------------------------------------
 # Sub Functions
 # ------------------------------------
 class MappingStatus(object):
     def __init__(self) -> None:
-        self.total = None
-        self.mapped = None
-        self.chrM = None
+        self.total: Optional[int] = None
+        self.mapped: Optional[int] = None
+        self.chrM: Optional[int] = None
         self.status = False
 
 
 class FrgmentsStatus(object):
     def __init__(self) -> None:
-        self.raw = None
-        self.uniq = None
-        self.OCR = None
+        self.raw: Optional[int] = None
+        self.uniq: Optional[int] = None
+        self.OCR: Optional[int] = None
+        self.status = True
+
+
+class PeakStatus(object):
+    def __init__(self) -> None:
+        self.peak: Optional[int] = None
+        self.FFiP: Optional[float] = None
         self.status = True
 
 class CRTFsample(object):
@@ -35,6 +44,8 @@ class CRTFsample(object):
         self.reads2_files = reads2_files.split(',')
         self.mapping_status = MappingStatus()
         self.fragments_status = FrgmentsStatus()
+        self.peak_status = PeakStatus()
+        self.OCR_peak_status = PeakStatus()
     
     def file_check(self, file: str, file_type: str) -> bool:
         """check file existence related to this sample"""
@@ -116,13 +127,13 @@ class CRTFsample(object):
     def get_num_of_bed_file(self, bed_file: str) -> int:  #TODO: multiple type hint
         bed_file_num = 0
         bigbed_file = f'{bed_file[:-2]}b'
-        if os.path.isfile(f'{bigbed_file}'):
+        if self.file_check(f'{bigbed_file}', 'BigBed file'):
             bed_file_num = int(
                 subprocess.check_output(
                     f'''bigBedInfo {bigbed_file} | grep itemCount | cut -d " " -f 2 | sed -s 's/,//g' ''',
                     shell=True).decode().strip())
             return bed_file_num
-        elif os.path.isfile(f'{bed_file}'):
+        elif self.file_check(f'{bed_file}', 'Bed file'):
             bed_file_num = int(
                 subprocess.check_output(
                     f'''cat {bed_file} | wc -l''',
@@ -159,7 +170,57 @@ class CRTFsample(object):
         if not os.path.isfile(f'2_signal/{self.name}_cutsites_minus.bed') and not os.path.isfile(f'2_signal/{self.name}_cutsites_minus.bb'):
             sys.stdout.write(f'Warning! Cut sites minus strand files: ({self.name}_cutsites_minus.bed and {self.name}_cutsites_minus.bb) for sample: {self.name} were not exist!\n')
 
+    def get_number_of_peak_file(self, peak_file: str) -> int:
+        if self.file_check(peak_file, 'Peak file'):
+            peak_num = int(subprocess.check_output(
+                    f'''cat {peak_file} | wc -l''',
+                    shell=True).decode().strip())
+            return peak_num
 
+    def get_peak_info(self) -> None:
+        """peak info (all fragments by default)"""
+
+        peak_file = f'3_peak/{self.name}_peaks.narrowPeak'
+
+        try:
+            self.peak_status.peak = self.get_number_of_peak_file(peak_file)
+        except FileNotFoundError:
+            self.peak_status.status = False
+
+        fragments_file = f'2_signal/{self.name}_fragments.bed'
+        fragments_bb_file = fragments_file[:-2] + 'b'
+        if not os.path.isfile(fragments_file):
+            if os.path.isfile(fragments_bb_file):
+                subprocess.Popen(f'BigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
+            else:
+                raise FileNotFoundError(f'Fragments file ({fragments_file}) not found')
+        FiP = int(subprocess.check_output(
+                    f'''intersectBed -u -a {fragments_file} -b {peak_file} | wc -l''',
+                    shell=True).decode().strip())
+        self.peak_status.FFiP = 1.0 * FiP / self.fragments_status.uniq
+
+    def get_OCR_peak_info(self) -> None:
+        """peak info (OCR fragments)"""
+
+        peak_file = f'3_peak/{self.name}_OCR_peaks.narrowPeak'
+
+        try:
+            self.OCR_peak_status.peak = self.get_number_of_peak_file(peak_file)
+        except FileNotFoundError:
+            self.OCR_peak_status.status = False
+
+        fragments_file = f'2_signal/{self.name}_OCR_fragments.bed'
+        fragments_bb_file = fragments_file[:-2] + 'b'
+        if not os.path.isfile(fragments_file):
+            if os.path.isfile(fragments_bb_file):
+                subprocess.Popen(f'BigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
+            else:
+                raise FileNotFoundError(f'Fragments file ({fragments_file}) not found')
+        FiP = int(subprocess.check_output(
+                    f'''intersectBed -u -a {fragments_file} -b {peak_file} | wc -l''',
+                    shell=True).decode().strip())
+        self.OCR_peak_status.FFiP = 1.0 * FiP / self.fragments_status.uniq
+    
     def output_line(self) -> list:
         """output in list format"""
         out = []
@@ -169,6 +230,7 @@ class CRTFsample(object):
         out.extend([self.name, self.genomeVersion])
         out.extend([self.mapping_status.total, self.mapping_status.mapped, self.mapping_status.mapped / self.mapping_status.total, self.mapping_status.chrM])
         out.extend([self.fragments_status.raw, self.fragments_status.uniq, 1 - self.fragments_status.uniq / self.fragments_status.raw, self.fragments_status.OCR])
+        out.extend([self.peak_status.peak, self.peak_status.FFiP, self.OCR_peak_status.peak, self.OCR_peak_status.FFiP])
         return out
 
 
@@ -210,7 +272,8 @@ def main():
             'Sample', 'Genome assembly', 'Raw reads pair (adapter removed)',
             'Mapped reads pair (mapped cordantly, q30 filtered)',
             'Mapping efficiency', 'chrM fragments', 'Raw fragments',
-            'Unique nuclear fragments', 'Duplicate level', 'Effective fragments'
+            'Unique nuclear fragments', 'Duplicate level', 'Effective fragments',
+            'Peak number (all fragments)', 'FFiP (all fragments)', 'Peak number (OCR fragments)', 'FFiP (OCR fragments)'
         ])
 
         for name, genomeVersion, reads1_files, reads2_files in load_sample(
@@ -225,6 +288,8 @@ def main():
             CRTFsample_.get_mapped_info()
             CRTFsample_.get_fragments_num()
             CRTFsample_.cutsites_files_check()
+            CRTFsample_.get_peak_info()
+            CRTFsample_.get_OCR_peak_info()
             mapping_csv.writerow(CRTFsample_.output_line())
 
             fragments_length_file = f'4_basic_QC/{name}_fragments_length.txt'
