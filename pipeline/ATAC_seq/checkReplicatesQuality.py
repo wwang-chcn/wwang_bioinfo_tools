@@ -89,6 +89,7 @@ def check_target_regions_file(genome_version,
             for line in promoter_gen(input_fhd):
                 output_fhd.write(line)
 
+
 def get_bigwig_mean(bigwig_file):
     """
     get the mean about a bigwig file
