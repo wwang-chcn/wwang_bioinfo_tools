@@ -3,7 +3,12 @@
 # May-28-2021
 
 function print_help {
-    echo "USAGE: $0 <name> <genomeVersion> <replicate1> <replicate2>+"
+    echo "USAGE: $0 <name> <genomeVersion> <replicates,+> <narrow/broad> [downSampling]"
+    echo "name: the sample name"
+    echo "genomeVersion: the genome version processed for these samples"
+    echo "replicates: comma separated list of replicates"
+    echo "narrow/broad: peak type"
+    echo "downSampling: target sampling fragments for each sample. optional"
 }
 
 function bedToBigWig {
@@ -24,6 +29,39 @@ function compress_bed {
     rm ${bedFile} ${bedFile}.tmp
 }
 
+function peak_calling {
+    name=${1}
+    genomeVersion=${2}
+    peakType=${3}
+    
+    cd 5_merged_sample
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
+    if [[ ! -e ${name}_fragments.bed ]]; then
+        bigBedToBed ${name}_fragments.bb ${name}_fragments.bed
+    fi
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
+    if [[ ${peakType} == "narrow" ]]; then
+        macs3 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g ${chromsize} --keep-dup all 2>&1 >>/dev/null | tee MACS_${name}.out
+    elif [[ ${peakType} == "broad" ]]; then
+        macs3 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g ${chromsize} --keep-dup all --broad 2>&1 >>/dev/null | tee MACS_${name}.out
+    else
+        echo "peak type should be narrow or broad, exit!"
+        exit 1
+    fi
+    cd ..
+}
+
+function clearning_up {
+    for i in ${fragments_array[@]}; do
+        if [[ -e 2_signal/${i}_fragments.bb ]]; then
+            rm 2_signal/${i}_fragments.bb
+        fi
+    done
+    if [[ -e 5_merged_sample/${name}_fragments.bed ]]; then
+        rm 5_merged_sample/${name}_fragments.bed
+    fi
+}
+
 if [[ $# -lt 3 ]]; then
     echo "No enought parameters!"
     print_help
@@ -36,11 +74,10 @@ mkdir -p 5_merged_sample/
 
 name=${1}
 genomeVersion=${2}
-shift 2
 
 # get fragment files
-reads_file_array=()
-for i in $@; do
+IFS=',' read -r -a reads_file_array <<< ${3}
+for i in ${reads_file_array[@]}; do
     if [[ ! -e 2_signal/${i}_fragments.bed ]]; then
         if [[ ! -e 2_signal/${i}_fragments.bb ]]; then
             echo "fragments file for sample ${i} do not exist, exit!"
@@ -50,15 +87,24 @@ for i in $@; do
     fi
     fragments_array+=("2_signal/${i}_fragments.bed")
 done
+peakType=${4}
+
 
 # merge fragment files
-cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 5_merged_sample/${name}_fragments.bed
+cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 5_merged_sample/${name}_fragments.bed.tmp
 cd 5_merged_sample/
+if [[ $# -eq 5 ]]; then
+    mv ${name}_fragments.bed.tmp ${name}_fragments.bed
+else
+    n=`wc -l ${name}_fragments.bed.tmp | cut -f 1 -d " "`
+    ratio=`bc -l <<< "${5} / $n"`
+    awk -v ratio=${ratio} 'BEGIN{srand();}{if(rand() <= ratio) print $0}' ${name}_fragments.bed.tmp > ${name}_fragments.bed
+    rm ${name}_fragments.bed.tmp
+fi
 bedToBigWig
-compress_bed ${name}_fragments.bed ${genomeVersion}
 cd ..
-for i in $@; do
-   if [[ -e 2_signal/${i}_fragments.bb ]]; then
-       rm 2_signal/${i}_fragments.bed
-   fi
-done
+
+peak_calling ${name} ${genomeVersion} ${peakType}
+compress_bed 5_merged_sample/${name}_fragments.bed ${genomeVersion}
+
+clearning_up
