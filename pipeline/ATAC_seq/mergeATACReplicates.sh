@@ -13,11 +13,11 @@ function print_help {
 function bedToBigWig {
     name=${1}
     genomeVersion=${2}
-    n=`wc -l ${name}_OCR_SE_reads.bed | cut -f 1 -d " "`
+    n=`wc -l ${name}_OCR_fragments.bed | cut -f 1 -d " "`
     c=`bc -l <<< "1000000 / $n"`
-    genomeCoverageBed -bga -scale $c -i ${name}_OCR_SE_reads.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_SE_reads.bdg
-    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_SE_reads.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
-    rm ${name}_OCR_SE_reads.bdg
+    genomeCoverageBed -bga -scale $c -i ${name}_OCR_fragments.bed -g ~/source/bySpecies/${genomeVersion}/${genomeVersion}.chrom.sizes > ${name}_OCR_fragments.bdg
+    ${MY_PATH}/../utilities/bdg2bw.sh ${name}_OCR_fragments.bdg ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes ${name}
+    rm ${name}_OCR_fragments.bdg
 }
 
 function compress_bed {
@@ -33,24 +33,26 @@ function compress_bed {
 function peak_calling {
     name=${1}
     genomeVersion=${2}
+    
     mkdir -p ../4_peaks
     cd 4_peaks
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-    if [[ ! -e ../3_merged_signal/${name}_OCR_SE_reads.bed ]]; then
-        bigBedToBed ../3_merged_signal/${name}_OCR_SE_reads.bb ../3_merged_signal/${name}_OCR_SE_reads.bed
+    if [[ ! -e ../3_merged_signal/${name}_OCR_fragments.bed ]]; then
+        bigBedToBed ../3_merged_signal/${name}_OCR_fragments.bb ../3_merged_signal/${name}_OCR_fragments.bed
     fi
-    macs14 -t ../3_merged_signal/${name}_OCR_SE_reads.bed -n ${name} -f BED -g 1.4e9 --keep-dup all --nomodel --shiftsize 25 2>&1 >>/dev/null | tee MACS_${name}.out
+    chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
+    macs3 callpeak -f BEDPE -t ../3_merged_signal/${name}_OCR_fragments.bed -n ${name} -g ${chromsize} --keep-dup all 2>&1 >>/dev/null | tee MACS_${name}.out
     cd ..
 }
 
 function clearning_up {
     for i in $@; do
-        if [[ -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
-            rm 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
+        if [[ -e 2_signal/OCR/${i}_uniq_OCR_fragments.bb ]]; then
+            rm 2_signal/OCR/${i}_uniq_OCR_fragments.bed
         fi
     done
-    if [[ -e ../3_merged_signal/${name}_OCR_SE_reads.bed ]]; then
-        rm ../3_merged_signal/${name}_OCR_SE_reads.bed
+    if [[ -e ../3_merged_signal/${name}_OCR_fragments.bed ]]; then
+        rm ../3_merged_signal/${name}_OCR_fragments.bed
     fi
 }
 
@@ -68,35 +70,36 @@ fi
 
 MY_PATH="`readlink -f $(dirname \"$0\")`"
 
-mkdir -p 3_merged_signal/
+mkdir -p 3_merged_signal/ 4_peaks/
+
 
 name=${1}
 genomeVersion=${2}
 IFS=',' read -r -a reads_file_array <<< ${3}
 for i in ${reads_file_array[@]}; do
-    if [[ ! -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed ]]; then
-        if [[ ! -e 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb ]]; then
-            echo "reads for sample ${i} do not exist, exit!"
+    if [[ ! -e 2_signal/OCR/${i}_OCR_fragments.bed ]]; then
+        if [[ ! -e 2_signal/OCR/${i}_OCR_fragments.bb ]]; then
+            echo "fragments for sample ${i} do not exist, exit!"
             exit 1
         fi
-        bigBedToBed 2_signal/OCR/${i}_uniq_OCR_SE_reads.bb 2_signal/OCR/${i}_uniq_OCR_SE_reads.bed
+        bigBedToBed 2_signal/OCR/${i}_OCR_fragments.bb 2_signal/OCR/${i}_OCR_fragments.bed
     fi
-    fragments_array+=("2_signal/OCR/${i}_uniq_OCR_SE_reads.bed")
+    fragments_array+=("2_signal/OCR/${i}_OCR_fragments.bed")
 done
 
-cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 3_merged_signal/${name}_OCR_SE_reads.bed.tmp
+cat ${fragments_array[@]} | sort -k1,1 -k2,2n > 3_merged_signal/${name}_OCR_fragments.bed.tmp
 
 cd 3_merged_signal/
 if [[ $# -lt 4 ]]; then
-    mv ${name}_OCR_SE_reads.bed.tmp ${name}_OCR_SE_reads.bed
+    mv ${name}_OCR_fragments.bed.tmp ${name}_OCR_fragments.bed
 else
-    n=`wc -l ${name}_OCR_SE_reads.bed.tmp | cut -f 1 -d " "`
+    n=`wc -l ${name}_OCR_fragments.bed.tmp | cut -f 1 -d " "`
     ratio=`bc -l <<< "${4} / ${n}"`
-    awk -v ratio=${ratio} 'BEGIN{srand(1006)} {if(rand()<ratio) print}' ${name}_OCR_SE_reads.bed.tmp > ${name}_OCR_SE_reads.bed
-    rm ${name}_OCR_SE_reads.bed.tmp
+    awk -v ratio=${ratio} 'BEGIN{srand(1006)} {if(rand()<ratio) print}' ${name}_OCR_fragments.bed.tmp > ${name}_OCR_fragments.bed
+    rm ${name}_OCR_fragments.bed.tmp
 fi
 bedToBigWig ${name} ${genomeVersion}
-compress_bed ${name}_OCR_SE_reads.bed ${genomeVersion}
+compress_bed ${name}_OCR_fragments.bed ${genomeVersion}
 cd ..
 
 peak_calling ${name} ${genomeVersion}
