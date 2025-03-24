@@ -191,7 +191,7 @@ class CRTFsample(object):
         fragments_bb_file = fragments_file[:-2] + 'b'
         if not os.path.isfile(fragments_file):
             if os.path.isfile(fragments_bb_file):
-                subprocess.Popen(f'BigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
+                subprocess.Popen(f'bigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
             else:
                 raise FileNotFoundError(f'Fragments file ({fragments_file}) not found')
         FiP = int(subprocess.check_output(
@@ -213,7 +213,7 @@ class CRTFsample(object):
         fragments_bb_file = fragments_file[:-2] + 'b'
         if not os.path.isfile(fragments_file):
             if os.path.isfile(fragments_bb_file):
-                subprocess.Popen(f'BigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
+                subprocess.Popen(f'bigBedToBed {fragments_bb_file} {fragments_file}', shell=True)
             else:
                 raise FileNotFoundError(f'Fragments file ({fragments_file}) not found')
         FiP = int(subprocess.check_output(
