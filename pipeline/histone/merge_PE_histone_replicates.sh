@@ -30,20 +30,20 @@ function compress_bed {
 }
 
 function peak_calling {
-    name=${1}
+    pc_name=${1}
     genomeVersion=${2}
     peakType=${3}
     
     cd 5_merged_sample
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes`
-    if [[ ! -e ${name}_fragments.bed ]]; then
-        bigBedToBed ${name}_fragments.bb ${name}_fragments.bed
+    if [[ ! -e ${pc_name}_fragments.bed ]]; then
+        bigBedToBed ${pc_name}_fragments.bb ${pc_name}_fragments.bed
     fi
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
     if [[ ${peakType} == "narrow" ]]; then
-        macs3 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g ${chromsize} --keep-dup all 2>&1 >>/dev/null | tee MACS_${name}.out
+        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --keep-dup all 2>&1 >>/dev/null | tee MACS_${pc_name}.out
     elif [[ ${peakType} == "broad" ]]; then
-        macs3 callpeak -f BEDPE -t ${name}_fragments.bed -n ${name} -g ${chromsize} --keep-dup all --broad 2>&1 >>/dev/null | tee MACS_${name}.out
+        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --keep-dup all --broad 2>&1 >>/dev/null | tee MACS_${pc_name}.out
     else
         echo "peak type should be narrow or broad, exit!"
         exit 1
