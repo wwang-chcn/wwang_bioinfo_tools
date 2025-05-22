@@ -44,9 +44,9 @@ function peak_calling {
     fi
     chromsize=`awk 'BEGIN{s=0} {s+=$2} END{print s}' ~/source/bySpecies/${genomeVersion}/${genomeVersion}_main.chrom.sizes` && \
     if [[ ${peakType} == "narrow" ]]; then
-        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --keep-dup all 2>&1 >>/dev/null | tee MACS_${pc_name}.out
+        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --keep-dup all 2>&1 >>/dev/null | tee MACS_${pc_name}.out
     elif [[ ${peakType} == "broad" ]]; then
-        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --keep-dup all --broad 2>&1 >>/dev/null | tee MACS_${pc_name}.out
+        macs3 callpeak -f BEDPE -t ${pc_name}_fragments.bed -n ${pc_name} -g ${chromsize} --nomodel --shift 37 --extsize 73 --broad --keep-dup all 2>&1 >>/dev/null | tee MACS_${pc_name}.out
     else
         echo "peak type should be narrow or broad, exit!"
         exit 1
